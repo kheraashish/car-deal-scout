@@ -7,31 +7,42 @@
 
 ## The recommendation
 
-### 2025 Toyota RAV4 Hybrid XLE (moonroof) · Blue · 22,243 km · $41,888
-**Thornhill Toyota** — 11 km away · [listing](https://www.autotrader.ca/offers/toyota-rav4-moonroof-smart-key-push-start-hybrid-xle-awd-gas-electric-hybrid-blue-cat_ma70gr201439va2399tr11876-7bcac281-7837-4ef8-b64c-6d9d908a1102)
+### 2025 Honda CR-V Hybrid **Touring** · Blue · 23,445 km · $44,990
+**Parkway Honda, North York** · [listing](https://www.autotrader.ca/offers/honda-cr-v-touring-no-accidents-honda-certified-off-lease-gas-electric-hybrid-blue-cat_ma31gr200623va2625tr13122-7bc8ae5e-bc08-433d-9217-10209080634e)
 
-This is the car asked for in the first message, and it clears every constraint that
-was added afterwards:
+Listing title, verbatim: **"NO ACCIDENTS | HONDA CERTIFIED | OFF LEASE"**.
+Verified directly on the listing page, not taken from a sub-agent's report.
+
+It is the only vehicle found that satisfies **every** constraint set across the
+whole search:
 
 | Test | Result |
 |---|---|
 | Colour rule | Blue |
 | Hybrid | Yes |
-| Franchise dealer | Toyota franchise |
-| Odometer | ~14,800 km/yr — nothing to verify |
-| Warranty | ~1.4 yr basic, 3.4 yr powertrain, hybrid to 8yr/160,000 km |
-| Depreciation | ~8.5%/yr — best on the list |
-| Budget | $41,888, inside the $45K ceiling |
+| Premium / fully-loaded trim | **Touring — the TOP CR-V trim**, above EX-L |
+| Accident history stated | **Yes, explicitly** — 3 of 29 used cars do |
+| Franchise dealer | Honda franchise, brand-matched |
+| Manufacturer Certified | **Honda Certified** — CPO warranty extension |
+| Odometer | ~19,500 km/yr — unremarkable |
+| Budget | $44,990 |
 
-Best-retaining nameplate **and** the hybrid — those two rarely coincide.
+Off-lease is a positive here: a lease return means a single owner on a maintenance
+schedule with a km cap, and Honda inspected it before Certifying.
 
-**Before buying:** it is an AutoTrader dealer listing, so unlike Clutch the Carfax is
-not included. Demand it. Then ask Thornhill about **Toyota Certified** — only a
-brand-matched franchise can Certify, which adds extended powertrain cover and a
-factory inspection.
+**Cost:** ~$415 bi-weekly at 6.99%/48mo with $15,000 down · **$24,592 over 2 years**,
+**$42,211 over 5** (fuel included at 20,000 km/yr).
 
-**Backup:** 2023 RAV4 Hybrid XSE, 43,259 km, $43,890, Clutch — delivered, Carfax
-included, 10-day return. Older and more km, but zero seller risk.
+That is **$6,307 less than a brand-new 2026 CR-V Touring over five years**, for one
+model year, 23,445 km, and Certified warranty cover instead of factory-fresh.
+
+**Before buying:** get the Certified inspection sheet and the exact CPO warranty
+terms in writing, plus the Carfax. Confirm the in-service date — an off-lease car's
+warranty clock started when the first owner took delivery, not when you buy it.
+
+**Cheaper, if you relax one rule:** 2023 RAV4 Hybrid XSE, $43,890, Clutch —
+**$36,780 over 5 years**, the cheapest here. But its listing does **not** state
+accident history, so it fails the accident rule until a Carfax says otherwise.
 
 ---
 
