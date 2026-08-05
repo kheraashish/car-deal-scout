@@ -1,0 +1,353 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Car Deal Scout — GTA 200km</title>
+<style>
+:root{
+  --bg:#14181c; --panel:#1c2227; --line:#2c353c; --ink:#e8ece9; --dim:#93a0a8;
+  --accent:#5fd3a6; --warn:#e8a33d; --bad:#e2705f; --good:#5fd3a6;
+}
+@media (prefers-color-scheme:light){
+  :root{ --bg:#f4f6f4; --panel:#fff; --line:#dde2de; --ink:#1b2320; --dim:#5f6f68;
+         --accent:#128063; --good:#128063; }
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);
+  font:15px/1.5 ui-sans-serif,-apple-system,"Segoe UI",system-ui,sans-serif}
+.wrap{max-width:1280px;margin:0 auto;padding:28px 20px 80px}
+h1{font-size:26px;margin:0 0 4px;letter-spacing:-.02em}
+.sub{color:var(--dim);font-size:14px;margin:0 0 24px}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:18px;margin-bottom:20px}
+.ctrls{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:16px}
+label{display:block;font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--dim);margin-bottom:6px}
+input[type=number],select{width:100%;background:var(--bg);color:var(--ink);border:1px solid var(--line);
+  border-radius:6px;padding:8px 10px;font:inherit;font-variant-numeric:tabular-nums}
+input[type=range]{width:100%;accent-color:var(--accent)}
+.val{font-variant-numeric:tabular-nums;font-weight:600;font-size:15px}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+.chip{border:1px solid var(--line);background:transparent;color:var(--dim);border-radius:999px;
+  padding:5px 12px;font-size:13px;cursor:pointer}
+.chip[aria-pressed=true]{background:var(--accent);border-color:var(--accent);color:var(--bg);font-weight:600}
+.scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+table{border-collapse:collapse;width:100%;min-width:900px;font-variant-numeric:tabular-nums}
+th,td{text-align:right;padding:10px 12px;border-bottom:1px solid var(--line);white-space:nowrap}
+th{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--dim);font-weight:600;
+  position:sticky;top:0;background:var(--panel)}
+td.l,th.l{text-align:left;white-space:normal}
+tr.row{cursor:pointer}
+tr.row:hover td{background:color-mix(in oklab,var(--accent) 8%,transparent)}
+.veh{font-weight:600}
+.meta{color:var(--dim);font-size:12.5px}
+.tag{display:inline-block;font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;
+  border:1px solid var(--line);border-radius:4px;padding:1px 6px;margin-right:5px;color:var(--dim)}
+.tag.q{border-color:var(--good);color:var(--good)}
+.tag.est{border-color:var(--warn);color:var(--warn)}
+.tag.miss{border-color:var(--bad);color:var(--bad)}
+.in{color:var(--good);font-weight:600}
+.over{color:var(--bad)}
+.detail td{background:color-mix(in oklab,var(--accent) 5%,transparent);white-space:normal;text-align:left}
+.detail ul{margin:6px 0 0;padding-left:18px}
+.detail li{margin-bottom:5px;font-size:13.5px}
+.kv{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px 20px;margin-bottom:12px}
+.kv div span{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--dim)}
+.note{font-size:13px;color:var(--dim);margin-top:14px;line-height:1.6}
+.empty{padding:40px;text-align:center;color:var(--dim)}
+.hid{margin-top:14px;border-top:1px solid var(--line);padding-top:12px}
+.hid h4{margin:0 0 8px;font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--warn)}
+table.hidt{min-width:0;width:100%;max-width:660px}
+table.hidt td{border-bottom:1px solid var(--line);padding:5px 8px;text-align:left;font-size:13px;white-space:normal}
+table.hidt td.amt{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap;font-weight:600}
+.k{font-size:10.5px;text-transform:uppercase;letter-spacing:.04em;border:1px solid var(--line);
+   border-radius:4px;padding:1px 6px;color:var(--dim);white-space:nowrap}
+.k-neg{border-color:var(--good);color:var(--good)}
+.k-risk{border-color:var(--warn);color:var(--warn)}
+a.visit{display:inline-block;background:var(--accent);color:var(--bg);font-weight:600;font-size:13.5px;
+  padding:8px 14px;border-radius:6px;text-decoration:none}
+a.visit:hover{filter:brightness(1.1)}
+@media(max-width:640px){ .wrap{padding:18px 12px 60px} h1{font-size:21px} }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Car Deal Scout</h1>
+  <p class="sub">GTA · 200 km radius · CR-V EX-L Hybrid / RAV4 / Grand Highlander · silver &amp; blue only ·
+     target <strong>$400–500 biweekly</strong></p>
+
+  <div class="panel">
+    <div class="ctrls">
+      <div>
+        <label for="down">Down payment</label>
+        <input type="range" id="down" min="0" max="20000" step="500" value="0">
+        <div class="val" id="downV">$0</div>
+      </div>
+      <div>
+        <label for="fterm">Finance term</label>
+        <select id="fterm">
+          <option value="48">48 months</option>
+          <option value="60" selected>60 months</option>
+          <option value="72">72 months</option>
+          <option value="84">84 months</option>
+        </select>
+      </div>
+      <div>
+        <label for="lterm">Lease term</label>
+        <select id="lterm">
+          <option value="24" selected>24 months</option>
+          <option value="36">36 months</option>
+          <option value="48">48 months</option>
+        </select>
+      </div>
+      <div>
+        <label for="kmrate">Travel cost $/km</label>
+        <input type="number" id="kmrate" value="0.30" step="0.05" min="0">
+      </div>
+      <div>
+        <label for="plates">Plates + safety $</label>
+        <input type="number" id="plates" value="120" step="10" min="0">
+      </div>
+      <div>
+        <label for="hst">HST %</label>
+        <input type="number" id="hst" value="13" step="0.5" min="0">
+      </div>
+    </div>
+    <div class="chips" id="filters">
+      <button class="chip" data-f="hybrid" aria-pressed="false">Hybrid only</button>
+      <button class="chip" data-f="budget" aria-pressed="false">Within biweekly budget</button>
+      <button class="chip" data-f="colour" aria-pressed="false">Colour rule passes</button>
+      <button class="chip" data-f="pano"   aria-pressed="false">Panoramic roof</button>
+      <button class="chip" data-f="bench"  aria-pressed="false">Row-2 bench</button>
+    </div>
+  </div>
+
+  <div class="panel" style="padding:0;overflow:hidden">
+    <div class="scroll">
+      <table id="tbl">
+        <thead><tr>
+          <th class="l">#</th><th class="l">Vehicle</th><th class="l">Dealer</th>
+          <th>All-in cash<br><span style="font-weight:400;text-transform:none">"last mile"</span></th>
+          <th>Finance<br>biweekly</th>
+          <th>Lease 24mo<br>biweekly</th>
+          <th>Buyback</th>
+          <th>Cost to own<br>at 24 mo</th>
+        </tr></thead>
+        <tbody id="body"></tbody>
+      </table>
+    </div>
+    <div class="empty" id="empty" hidden>No deals match these filters.</div>
+  </div>
+
+  <p class="note">
+    <strong>All-in cash ("last mile")</strong> = price + freight/PDI + fees − incentives, plus HST, plus plates,
+    plus the round-trip drive to collect it. It is what leaves your account to own the car outright today.<br>
+    <strong>Cost to own at 24 months</strong> = down payment + 24 months of payments + what you still owe
+    (loan balance on finance, buyback price on lease). This is the only apples-to-apples number across
+    finance and lease — a low payment with a punitive buyback is not a good deal.<br>
+    <strong>Buyback</strong> = residual × MSRP, plus HST and a ~$300 purchase-option fee. Residuals marked
+    <span class="tag est">est</span> are estimates and must be confirmed by the dealer;
+    <span class="tag q">quoted</span> came off a real quote.
+  </p>
+</div>
+
+<script src="deals.js"></script>
+<script>
+const $ = s => document.querySelector(s);
+const money = n => (n<0?"−$":"$") + Math.abs(n).toLocaleString("en-CA",{maximumFractionDigits:0});
+const money2 = n => "$" + n.toLocaleString("en-CA",{minimumFractionDigits:2,maximumFractionDigits:2});
+
+/* ---- payment math. Validated against two real Ontario dealer quotes (see self-test). ---- */
+
+const preTaxTotal = d => d.price + d.fees - (d.incentives||0);
+
+// Finance: down payment applies AFTER tax (matches Ontario dealer worksheets).
+function amortize(principal, apr, months){
+  const r = apr/100/26, n = Math.round(months/12*26);
+  if (principal <= 0) return {pmt:0, n};
+  const pmt = r === 0 ? principal/n : principal*r/(1-Math.pow(1+r,-n));
+  return {pmt, n, r, principal};
+}
+function financeBiweekly(d, down, months, hst){
+  return amortize(preTaxTotal(d)*(1+hst/100) - down, d.financeApr, months);
+}
+// Balance still owed after k biweekly payments.
+function balanceAfter(a, k){
+  if (!a.principal) return 0;
+  const g = Math.pow(1+a.r, k);
+  return Math.max(0, a.principal*g - a.pmt*(g-1)/a.r);
+}
+
+// Lease: cap-cost reduction applies PRE-tax; HST rides on the payment. Residual is on MSRP.
+// Lease TAKEOVERS inherit a payment already fixed by the original contract — never
+// recompute it, use the real number and mark the term as inherited.
+function lease(d, down, months, hst){
+  const residual = d.msrp * (d.residualPct/100);
+  const buyback = residual*(1+hst/100) + 300;
+  if (d.fixedLeaseBiweekly != null)
+    return { monthly: d.fixedLeaseBiweekly*26/12, biweekly: d.fixedLeaseBiweekly,
+             residual, buyback, inherited: true };
+  const cap = preTaxTotal(d) - down;
+  const monthly = ((cap - residual)/months + (cap + residual) * (d.leaseApr/2400)) * (1+hst/100);
+  return { monthly, biweekly: monthly*12/26, residual, buyback };
+}
+
+function lastMile(d, hst, kmRate, plates){
+  return preTaxTotal(d)*(1+hst/100) + plates + (d.distanceKm||0)*2*kmRate;
+}
+
+/* Hidden costs — the money that is real but never on the advertised payment.
+ * "neg" = negotiable, argue it. "stat" = statutory, don't waste breath.
+ * "risk" = only bites on certain outcomes (return condition, overage, write-off). */
+function hiddenCosts(d){
+  const H = [];
+  const km = (d.kmPerYear||24000).toLocaleString();
+  if (d.status === "takeover") {
+    H.push(["LeaseBusters buyer fee", "~$596", "fixed"]);
+    H.push(["Lender lease-transfer fee", "$300–500", "fixed"]);
+    H.push([`Excess km beyond ${km}/yr`, "$0.15/km", "risk"]);
+    H.push(["Lease-end disposition fee", "$350–450", "risk — waived only if you buy out or re-lease"]);
+    H.push(["Excess wear at return", "$0–1,500", "risk — inspection-dependent"]);
+    H.push(["Buyout if you keep it", "see Buyback column", "optional"]);
+  } else {
+    if (d.status === "new" || d.status === "demo") {
+      H.push(["Dealer admin fee", "$499–799", "neg"]);
+      H.push(["Finance / lease admin", "$695", "neg"]);
+      H.push(["Anti-theft, nitrogen, fuel surcharge", "$300–800", "neg — pure dealer margin"]);
+      H.push(["A/C excise tax", "$100", "stat"]);
+    }
+    H.push(["OMVIC fee", "$22", "stat"]);
+    H.push(["Tire levy", "$22.50", "stat"]);
+    if (d.status === "used" || d.status === "demo")
+      H.push(["Safety certificate", "$100–200", "neg — often included"]);
+    H.push(["Lease-end disposition fee", "$350–450", "risk — leases only"]);
+    H.push([`Excess km beyond ${km}/yr on a lease`, "$0.15–0.20/km", "risk"]);
+  }
+  H.push(["Licensing + plates", "~$120", "stat — not taxed"]);
+  H.push(["Winter tires + rims", "$1,200–1,800", "risk — unless included"]);
+  H.push(["Insurance step-up vs current car", "varies", "risk — quote BEFORE you sign"]);
+  if (d.status === "takeover" || d.leaseMonths)
+    H.push(["GAP coverage on a write-off", "$0–600", "risk — a down payment is NOT refunded on a lease"]);
+  return H.concat((d.hidden||[]).map(x => Array.isArray(x) ? x : [x, "", "note"]));
+}
+
+/* ---- self-test: both formulas must reproduce the real quotes exactly ---- */
+(function selfTest(){
+  const near = (a,b,tol,what) => {
+    if (Math.abs(a-b) > tol) console.error(`SELF-TEST FAIL — ${what}: got ${a.toFixed(2)}, expected ${b}`);
+    else console.log(`self-test ok — ${what}: ${a.toFixed(2)}`);
+  };
+  // Honda: $43,249.72 financed, 60 months @ 4.79% biweekly -> $374.43
+  near(amortize(43249.72, 4.79, 60).pmt, 374.43, 0.02, "finance biweekly (Honda quote)");
+  // Toyota: cap $51,078.50, MSRP $59,336, 24mo @ 6.89%, 70% residual -> $306.24 biweekly PRE-tax
+  const cap=51078.50, res=59336*0.70;
+  const m=((cap-res)/24 + (cap+res)*(6.89/2400));
+  near(m*12/26, 306.24, 0.02, "lease biweekly pre-tax (Toyota quote)");
+})();
+
+/* ---- render ---- */
+const state = {filters:new Set()};
+const BUDGET_MAX = 500;
+
+function compute(d){
+  const hst=+$("#hst").value, down=+$("#down").value, kmRate=+$("#kmrate").value, plates=+$("#plates").value;
+  const fm = Math.min(+$("#fterm").value, 96);
+  // a takeover's term is inherited, not chosen — the global lease-term control can't override it
+  const lm = d.fixedLeaseBiweekly != null ? d.leaseMonths : +$("#lterm").value;
+  const f = financeBiweekly(d, down, fm, hst);
+  const l = lease(d, down, lm, hst);
+  const paid24 = Math.min(52, f.n);
+  const leaseBw = Math.min(52, Math.round(lm/12*26));   // takeovers can end sooner than 24 mo
+  return {
+    allIn: lastMile(d, hst, kmRate, plates),
+    fin: f.pmt, lease: l.biweekly, buyback: l.buyback,
+    own24: down + f.pmt*paid24 + balanceAfter(f, paid24),
+    leaseOwn24: (d.fixedLeaseBiweekly!=null?0:down) + l.biweekly*leaseBw + l.buyback,
+    fterm: fm, lterm: lm, inherited: !!l.inherited
+  };
+}
+
+function passes(d){
+  const f = state.filters, c = compute(d);
+  if (f.has("hybrid") && d.powertrain !== "hybrid") return false;
+  if (f.has("colour") && d.colourOk !== true) return false;
+  if (f.has("pano")   && d.pano !== true) return false;
+  if (f.has("bench")  && d.seating !== "bench") return false;
+  if (f.has("budget") && Math.min(c.fin, c.lease) > BUDGET_MAX) return false;
+  return true;
+}
+
+function render(){
+  $("#downV").textContent = money(+$("#down").value);
+  const rows = window.DEALS.filter(passes)
+    .map(d => ({d, c: compute(d)}))
+    .sort((a,b) => Math.min(a.c.own24,a.c.leaseOwn24) - Math.min(b.c.own24,b.c.leaseOwn24));
+
+  $("#empty").hidden = rows.length > 0;
+  $("#body").innerHTML = rows.map(({d,c},i) => {
+    const band = v => v<=BUDGET_MAX ? `<span class="in">${money2(v)}</span>` : `<span class="over">${money2(v)}</span>`;
+    const flags = [
+      d.verified==="quote" ? '<span class="tag q">quoted</span>' : '',
+      d.residualSource==="estimated" ? '<span class="tag est">est residual</span>' : '',
+      d.colourOk===null ? '<span class="tag miss">colour unknown</span>' : '',
+      d.colourOk===false ? '<span class="tag miss">colour fails</span>' : ''
+    ].join("");
+    return `
+    <tr class="row" data-i="${i}">
+      <td class="l">${i+1}</td>
+      <td class="l">
+        <div class="veh">${d.year} ${d.make} ${d.model} ${d.trim}</div>
+        <div class="meta">${flags}${d.colour||"colour TBC"} · ${d.powertrain} · ${d.status}${d.km?` · ${d.km.toLocaleString()} km`:""}</div>
+      </td>
+      <td class="l"><div>${d.dealer}</div><div class="meta">${d.city} · ${d.distanceKm} km</div></td>
+      <td>${money(c.allIn)}</td>
+      <td>${band(c.fin)}<div class="meta">${c.fterm} mo @ ${d.financeApr}%</div></td>
+      <td>${band(c.lease)}<div class="meta">${c.inherited?`${c.lterm} mo left · inherited`:`${c.lterm} mo @ ${d.leaseApr}%`}</div></td>
+      <td>${money(c.buyback)}<div class="meta">${d.residualPct}% of MSRP</div></td>
+      <td><strong>${money(Math.min(c.own24,c.leaseOwn24))}</strong>
+          <div class="meta">${c.own24<=c.leaseOwn24?"finance":"lease"} route</div></td>
+    </tr>
+    <tr class="detail" hidden data-d="${i}"><td colspan="8">
+      <div class="kv">
+        <div><span>MSRP</span>${money(d.msrp)}</div>
+        <div><span>Selling price</span>${money(d.price)}</div>
+        <div><span>Fees &amp; freight</span>${money(d.fees)}</div>
+        <div><span>Incentives</span>${money(-(d.incentives||0))}</div>
+        <div><span>HST</span>${money(preTaxTotal(d)*(+$("#hst").value/100))}</div>
+        <div><span>Drive to collect</span>${money(d.distanceKm*2*(+$("#kmrate").value))}</div>
+        <div><span>Lease route 24mo</span>${money(c.leaseOwn24)}</div>
+        <div><span>Finance route 24mo</span>${money(c.own24)}</div>
+        <div><span>Carfax</span>${d.carfax===null?"not checked":d.carfax?"available":"MISSING — disqualify"}</div>
+        <div><span>VIN</span>${d.vin||"—"}</div>
+      </div>
+      <ul>${(d.notes||[]).map(n=>`<li>${n}</li>`).join("")}</ul>
+      <div class="hid">
+        <h4>Hidden costs — not in any advertised payment</h4>
+        <table class="hidt"><tbody>
+        ${hiddenCosts(d).map(([what,amt,kind])=>`<tr>
+          <td>${what}</td><td class="amt">${amt}</td>
+          <td><span class="k k-${(kind||"").split(" ")[0].replace(/[^a-z]/gi,"")}">${kind}</span></td></tr>`).join("")}
+        </tbody></table>
+      </div>
+      ${d.url?`<p style="margin:12px 0 0"><a class="visit" href="${d.url}" target="_blank" rel="noopener">Open the actual listing →</a></p>`
+             :`<p style="margin:12px 0 0" class="meta">No live listing URL — it was delisted during the scan. Re-run the scout.</p>`}
+    </td></tr>`;
+  }).join("");
+}
+
+$("#body").addEventListener("click", e => {
+  const tr = e.target.closest("tr.row"); if(!tr) return;
+  const d = document.querySelector(`tr.detail[data-d="${tr.dataset.i}"]`);
+  d.hidden = !d.hidden;
+});
+$("#filters").addEventListener("click", e => {
+  const b = e.target.closest(".chip"); if(!b) return;
+  const on = b.getAttribute("aria-pressed") === "true";
+  b.setAttribute("aria-pressed", String(!on));
+  on ? state.filters.delete(b.dataset.f) : state.filters.add(b.dataset.f);
+  render();
+});
+document.querySelectorAll("input,select").forEach(el => el.addEventListener("input", render));
+render();
+</script>
+</body>
+</html>
