@@ -298,6 +298,102 @@ window.DEALS = [
     ]
   },
 
+  /* ============ $30-45K BAND (AutoTrader) — the ceiling that unlocks hybrids ============
+   * At $30-40K every low-km car was gas. Lifting the cap to $45K puts low-km
+   * RAV4 Hybrids and even a 2026 CR-V Hybrid in range. This band is where the
+   * money actually works. */
+  {
+    id: "at-rav4-hybrid-xle-2025-blue",
+    status: "used",
+    year: 2025, make: "Toyota", model: "RAV4 Hybrid", trim: "XLE AWD (moonroof)",
+    powertrain: "hybrid",
+    colour: "Blue", colourOk: true,
+    seating: null, pano: false,
+    km: 22243, vin: null, stock: null,
+    dealer: "GTA dealer", city: "Toronto area, ON", distanceKm: 11,
+    msrp: 45000, price: 41888, fees: 1540, incentives: 0,
+    financeApr: 7.99, financeMonths: 48,
+    leaseApr: 8.99, leaseMonths: 24, residualPct: 60, kmPerYear: 24000,
+    residualSource: "estimated", carfax: null, depPct: 8.5,
+    url: "https://www.autotrader.ca/offers/toyota-rav4-moonroof-smart-key-push-start-hybrid-xle-awd-gas-electric-hybrid-blue-cat_ma70gr201439va2399tr11876-7bcac281-7837-4ef8-b64c-6d9d908a1102",
+    evidence: [], verified: "listing",
+    notes: [
+      "THIS IS THE CAR YOU ORIGINALLY ASKED FOR. RAV4 Hybrid, blue, XLE with moonroof, 22,243 km, 11 km from you, $41,888. It did not exist under a $40K cap — $45K is what buys it.",
+      "~14,800 km/yr. Unremarkable odometer, nothing to verify.",
+      "Best depreciation resistance of anything in your list (~8.5%/yr) AND it is the hybrid you wanted. Those two rarely coincide.",
+      "Roughly 1.4 yr basic warranty and 3.4 yr powertrain remaining; hybrid components covered to 8yr/160,000 km.",
+      "Get the Carfax before committing — this is an AutoTrader dealer listing, so unlike Clutch the report is not automatically included."
+    ]
+  },
+  {
+    id: "at-crv-hybrid-sport-2026-silver",
+    status: "used",
+    year: 2026, make: "Honda", model: "CR-V Hybrid", trim: "Sport AWD",
+    powertrain: "hybrid",
+    colour: "Silver", colourOk: true,
+    seating: null, pano: false,
+    km: 20770, vin: null, stock: null,
+    dealer: "GTA dealer", city: "Toronto area, ON", distanceKm: 45,
+    msrp: 48472, price: 44300, fees: 1540, incentives: 0,
+    financeApr: 7.99, financeMonths: 48,
+    leaseApr: 8.99, leaseMonths: 24, residualPct: 62, kmPerYear: 24000,
+    residualSource: "estimated", carfax: null, depPct: 10.5,
+    url: "https://www.autotrader.ca/offers/honda-cr-v-sport-gas-electric-hybrid-silver-cat_ma31gr200623va2625tr13120-d5ee9683-5226-4198-9621-4245864ce6be",
+    evidence: [], verified: "listing",
+    notes: [
+      "A 2026 CR-V HYBRID for $44,300 against $48,472 brand new — and unlike the two Clutch 'Sport' cars, the AutoTrader slug says gas-electric-hybrid, so this one IS the hybrid.",
+      "20,770 km on a current-model-year car means it is a demo or a very early resale. GET THE IN-SERVICE DATE — the warranty clock started before you buy it.",
+      "Only $4,172 below new for a car with 20,770 km. That is a thin discount; the same trap as the Pickering EX-L demo. Push hard or buy new.",
+      "Newest hybrid in your budget. 45 km out."
+    ]
+  },
+  {
+    id: "at-ascent-onyx-2024-blue",
+    status: "used",
+    year: 2024, make: "Subaru", model: "Ascent", trim: "Onyx AWD",
+    powertrain: "gas",
+    colour: "Blue", colourOk: true,
+    seating: "bench", pano: false,
+    km: 24489, vin: null, stock: null,
+    dealer: "GTA dealer", city: "Toronto area, ON", distanceKm: 13,
+    msrp: 52000, price: 44495, fees: 1540, incentives: 0,
+    financeApr: 7.99, financeMonths: 48,
+    leaseApr: 8.99, leaseMonths: 24, residualPct: 52, kmPerYear: 24000,
+    residualSource: "estimated", carfax: null, depPct: 13,
+    url: "https://www.autotrader.ca/offers/subaru-ascent-onyx-gasoline-blue-cat_ma67gr202576tr17917-38046101-acc1-4f1c-bf20-c25d7bdc20d1",
+    evidence: [], verified: "listing",
+    notes: [
+      "THE THREE-ROW ANSWER. Ascent is Subaru's 8-seat SUV — this is the model you meant by 'Subaru Accent' (Accent is a Hyundai subcompact). 24,489 km, blue, 13 km away.",
+      "Cheapest genuinely low-km three-row in your colours at any budget here. A Grand Highlander equivalent starts around $55K.",
+      "Depreciates hardest of the low-km options (~13%/yr) — Subaru three-rows have the weakest resale in this set. Fine if you keep it; expensive if you flip in two years.",
+      "Only 51 Ascents within 200 km and ZERO in silver — blue is the entire colour-compliant supply."
+    ]
+  },
+  {
+    id: "at-mdx-tech-2019-silver",
+    status: "used",
+    year: 2019, make: "Acura", model: "MDX", trim: "Tech SH-AWD",
+    powertrain: "gas",
+    colour: "Silver", colourOk: true,
+    seating: "bench", pano: false,
+    km: 90774, vin: null, stock: null,
+    dealer: "GTA dealer", city: "Toronto area, ON", distanceKm: 32,
+    msrp: 62000, price: 30990, fees: 1540, incentives: 0,
+    financeApr: 7.99, financeMonths: 48,
+    leaseApr: 8.99, leaseMonths: 24, residualPct: 40, kmPerYear: 24000,
+    residualSource: "estimated", carfax: null, depPct: 12,
+    url: "https://www.autotrader.ca/offers/acura-mdx-tech-gasoline-silver-cat_ma16356gr200027tr11641-7996a758-319e-4416-86e7-d25bdcbeae4c",
+    evidence: [], verified: "listing",
+    notes: [
+      "THE ONLY MDX IN YOUR COLOURS UNDER $46K — one car out of 35 in the price band, and out of 491 MDXs within 200 km. Colour split was grey 13, white 10, black 9, silver 1, BLUE ZERO.",
+      "AND IT IS THE DEPRECIATION LESSON. This was a ~$62,000 car in 2019. It is $30,990 now — it has lost HALF its value in seven years, while a 2022 RAV4 still holds 97% after four. That gap is the entire answer to 'how is the MDX on depreciation'.",
+      "Which cuts both ways: terrible to buy new, potentially good to buy used, because someone else already took the hit. You are buying into the flat part of a steep curve.",
+      "BUT THE RUNNING COSTS FOLLOW YOU. MDX requires PREMIUM fuel, tyres are larger and dearer, Acura dealer labour rates are luxury-tier, and SH-AWD plus a 7-speed/9-speed auto are more to maintain than a RAV4. Budget noticeably more per year than anything else on this list.",
+      "90,774 km and seven years old: basic and powertrain warranty both long expired. Every repair is yours. At this age an MDX needs a pre-purchase inspection by an independent Acura specialist, not just a Carfax.",
+      "Three rows and genuinely nicer inside than a Highlander. If you want luxury for RAV4 money and will keep it, it is defensible. For your two-year flip plan it is the wrong car."
+    ]
+  },
+
   /* ============ $30-40K USED BUDGET (Clutch) — Honda / Toyota / Subaru ============
    * $15,000 down, balance at 7.99% over 48 months, possibly cleared in 24.
    * All GAS unless flagged. At this budget you get low km OR a hybrid, not both. */
