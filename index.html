@@ -124,6 +124,14 @@ a.go:hover{background:var(--accent);color:var(--bg);border-color:var(--accent)}
         <input type="number" id="hst" value="13" step="0.5" min="0">
       </div>
       <div>
+        <label for="kmyr">Your km per year</label>
+        <input type="number" id="kmyr" value="20000" step="1000" min="1000">
+      </div>
+      <div>
+        <label for="fuelp">Fuel $/L</label>
+        <input type="number" id="fuelp" value="1.55" step="0.05" min="0">
+      </div>
+      <div>
         <label for="depadj">Depreciation stress test</label>
         <input type="range" id="depadj" min="-4" max="10" step="0.5" value="0">
         <div class="val" id="depadjV">model default</div>
@@ -238,6 +246,21 @@ const depOf = d => Math.max(0, (d.depPct ?? DEP[d.model] ?? 11) + (+$("#depadj")
 // Private-sale value in 2 years, pre-tax. You pay HST going in; you don't collect it going out.
 const resale24 = d => d.price * Math.pow(1 - depOf(d)/100, 2);
 
+/* Fuel. Litres/100km combined — SEGMENT ESTIMATES, not queried figures, same
+ * epistemic status as the depreciation rates. Kept OUT of the headline true-cost
+ * figure so that number stays reconcilable against its stated definition, but
+ * shown alongside: over 2 years the hybrid-vs-gas gap is larger than several of
+ * the price deltas this table ranks on, so ranking hybrids against gas without
+ * it was a real hole. */
+const LPK = { "RAV4 Hybrid":6.0, "RAV4":7.8, "RAV4 Prime":6.2, "CR-V Hybrid":6.4,
+  "CR-V":8.0, "Crosstrek":8.1, "Forester":8.5, "Outback":8.9, "Venza":6.0,
+  "Highlander":9.5, "Grand Highlander":9.8, "Grand Highlander Hybrid":6.8,
+  "Ascent":10.0, "MDX":11.0 };
+const lpkOf = d => d.lp100 ?? LPK[d.model] ?? 8.5;
+// MDX requires premium — roughly a 15% per-litre penalty.
+const fuelCost = (d, yrs) =>
+  (+$("#kmyr").value) * yrs * lpkOf(d)/100 * (+$("#fuelp").value) * (d.premiumFuel||d.model==="MDX" ? 1.15 : 1);
+
 /* Hidden costs — the money that is real but never on the advertised payment.
  * "neg" = negotiable, argue it. "stat" = statutory, don't waste breath.
  * "risk" = only bites on certain outcomes (return condition, overage, write-off). */
@@ -295,10 +318,16 @@ function hiddenCosts(d){
     `SELF-TEST FAIL — ${broken.length} deal(s) missing a per-vehicle link:`,
     broken.map(d => d.id));
   else console.log(`self-test ok — all ${window.DEALS.length} deals deep-link to a single vehicle`);
+
+  // Every nameplate must have a fuel figure, or the next scan silently falls back
+  // to a default and the hybrid-vs-gas comparison quietly stops meaning anything.
+  const noLpk = [...new Set((window.DEALS||[]).map(d => d.model))].filter(m => !(m in LPK));
+  if (noLpk.length) console.error("SELF-TEST FAIL — no L/100km figure for:", noLpk);
+  else console.log("self-test ok — every nameplate has a fuel-consumption figure");
 })();
 
 /* ---- render ---- */
-const state = {filters:new Set()};
+const state = {filters:new Set(), open:new Set()};
 const BUDGET_MAX = 500;
 
 function compute(d){
@@ -322,7 +351,9 @@ function compute(d){
     own24: down + f.pmt*paid24 + balanceAfter(f, paid24),
     leaseOwn24: (d.fixedLeaseBiweekly!=null?0:down) + l.biweekly*leaseBw + l.buyback,
     resale, dep: depOf(d), deprec: d.price - resale,
+    fuel2: fuelCost(d,2), fuel5: fuelCost(d,5), lpk: lpkOf(d),
     finTrue, leaseTrue, best: Math.min(finTrue, leaseTrue),
+    drive2: Math.min(finTrue, leaseTrue) + fuelCost(d,2),
     fterm: fm, lterm: lm, inherited: !!l.inherited
   };
 }
@@ -408,7 +439,7 @@ function render(){
       d.colourOk===false ? '<span class="tag miss">colour fails</span>' : ''
     ].join("");
     return `
-    <tr class="row" data-i="${i}">
+    <tr class="row" data-id="${d.id}" tabindex="0" role="button" aria-expanded="false">
       <td class="l">${i+1}</td>
       <td class="l">
         <div class="veh">${d.year} ${d.make} ${d.model} ${d.trim}
@@ -424,9 +455,10 @@ function render(){
       <td>${money(c.buyback)}<div class="meta">${d.residualPct}% of MSRP</div></td>
       <td>${money(c.resale)}<div class="meta">−${money(c.deprec)} · ${c.dep.toFixed(1)}%/yr</div></td>
       <td><strong>${money(c.best)}</strong>
-          <div class="meta">${c.finTrue<=c.leaseTrue?"finance &amp; sell":"lease &amp; walk"}</div></td>
+          <div class="meta">${c.finTrue<=c.leaseTrue?"finance &amp; sell":"lease &amp; walk"}
+          · +${money(c.fuel2)} fuel</div></td>
     </tr>
-    <tr class="detail" hidden data-d="${i}"><td colspan="8">
+    <tr class="detail" hidden data-id="${d.id}"><td colspan="9">
       <div class="kv">
         <div><span>MSRP</span>${money(d.msrp)}</div>
         <div><span>Selling price</span>${money(d.price)}</div>
@@ -439,6 +471,9 @@ function render(){
         <div><span>Held of as-new</span>${d.msrp?Math.round(d.price/d.msrp*100)+"%":"—"}</div>
         <div><span>TRUE cost, finance</span>${money(c.finTrue)}</div>
         <div><span>TRUE cost, lease</span>${money(c.leaseTrue)}</div>
+        <div><span>Fuel, 2 yrs</span>${money(c.fuel2)} <span style="font-size:11px">(${c.lpk} L/100km)</span></div>
+        <div><span>Fuel, 5 yrs</span>${money(c.fuel5)}</div>
+        <div><span>2-yr ALL-IN to drive</span><strong>${money(c.drive2)}</strong></div>
         <div><span>Buy out at 24mo</span>${money(c.own24)}</div>
         <div><span>Carfax</span>${d.carfax===null?"not checked":d.carfax?"available":"MISSING — disqualify"}</div>
         <div><span>Use rate</span>${d.status==="new"||!d.km?"—":Math.round(kmPerYear(d)).toLocaleString()+" km/yr"}</div>
@@ -467,12 +502,33 @@ function render(){
              :`<p style="margin:12px 0 0" class="meta">No live listing URL — it was delisted during the scan. Re-run the scout.</p>`}
     </td></tr>`;
   }).join("");
+  applyOpen();          // re-apply expanded panels after every re-sort
 }
 
+/* Expanded panels are keyed on the DEAL ID, never the render index. Moving any
+ * dial re-sorts the table; index-keyed state would silently re-point an open
+ * panel at a different car. */
+function toggleRow(tr){
+  const id = tr.dataset.id;
+  state.open.has(id) ? state.open.delete(id) : state.open.add(id);
+  applyOpen();
+}
+function applyOpen(){
+  document.querySelectorAll("tr.detail").forEach(d => {
+    d.hidden = !state.open.has(d.dataset.id);
+  });
+  document.querySelectorAll("tr.row").forEach(r =>
+    r.setAttribute("aria-expanded", String(state.open.has(r.dataset.id))));
+}
 $("#body").addEventListener("click", e => {
+  if (e.target.closest("a")) return;              // links open the listing, not the panel
   const tr = e.target.closest("tr.row"); if(!tr) return;
-  const d = document.querySelector(`tr.detail[data-d="${tr.dataset.i}"]`);
-  d.hidden = !d.hidden;
+  toggleRow(tr);
+});
+$("#body").addEventListener("keydown", e => {
+  if (e.key !== "Enter" && e.key !== " ") return;
+  const tr = e.target.closest("tr.row"); if(!tr) return;
+  e.preventDefault(); toggleRow(tr);
 });
 $("#filters").addEventListener("click", e => {
   const b = e.target.closest(".chip"); if(!b) return;
