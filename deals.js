@@ -357,13 +357,19 @@ window.DEALS = [
     financeApr: 7.99, financeMonths: 48,
     leaseApr: 8.99, leaseMonths: 24, residualPct: 55, kmPerYear: 24000,
     residualSource: "estimated", carfax: true, depPct: 9,
+    inService: 2024.5,          // first service 2024-Jul-03 at 1,024 km (Carfax)
+    flag: "TRANSMISSION HISTORY — do not buy unverified",
     url: "https://www.clutch.ca/vehicles/116850",
-    evidence: [], verified: "listing",
+    evidence: ["CARFAX Canada report #71006303, read 2026-08-04"],
+    verified: "carfax",
     notes: [
-      "THE NEWER TOYOTA. Two years old with 33,057 km — about 16,500 km/yr, which is bang-on the Canadian average. Nothing about this odometer needs explaining, unlike the 19,041 km 2022 car.",
-      "Clean claim history, AWD, VIN confirmed. Gas, not hybrid.",
-      "$3,900 more than the 2022 with 19k km, and that premium buys you two model years and a believable service life. If the low-km 2022 makes you uneasy, this is the RAV4 to buy instead.",
-      "Still holds 97% of as-new price — the RAV4 premium risk applies here too. Stress-test it with the slider."
+      "CARFAX READ IN FULL. Odometer is CLEAN: 1,024 (2024-Jul) -> 1,463 -> 1,502 -> 3,433 -> 13,440 -> 22,312 -> 30,054 (2026-May). Monotonic, no rollback, no gaps. Clutch's 33,057 km is 3,003 km past the last reading over ~67 days = ~16,400 km/yr, matching the trend. No accidents, Ontario 'Normal' branding, no US history, not stolen, no open recalls.",
+      "BUT: TRANSMISSION CHECKED TWICE INSIDE THE FIRST 1,502 KM. 2024-Aug-16 at 1,320 km 'Drivability/performance checked, Transmission checked'; 2025-Jan-29 at 1,502 km 'Transmission checked' again. Nobody investigates a transmission twice on a nearly-new car unless someone is complaining.",
+      "THE ODOMETER SHAPE AGREES: the car covered 478 km in the six months between Aug 2024 and Jan 2025 — it sat. Normal use only begins spring 2025. That is the profile of a car with an early problem that wasn't being driven while it was looked at.",
+      "The report also contains the string 'CAMVAP Transmission'. CAMVAP is Canada's warranty-defect arbitration programme and a CAMVAP buyback is a manufacturer-repurchased lemon. That row carries n/a for date and odometer, which is how Carfax renders its GLOSSARY, and the summary panel did not flag a buyback branding — so it is PROBABLY a legend, not a finding. 'Probably' is not good enough when the word beside it matches the component checked twice at 1,300 km.",
+      "ACTION BEFORE BUYING: any Toyota dealer can pull the full warranty-claim history by VIN in seconds. Ask in writing — were there transmission repairs or replacements, and has this vehicle ever been subject to a CAMVAP claim? Clean answer = good car. Transmission file = walk, because it will also be harder for YOU to resell in two years.",
+      "Dealer-maintained throughout (Richmond Hill Toyota, then Yorkdale Toyota) and Krown rustproofed Nov 2024 by an owner who cared. Clutch Performance Ltd. appears 2025-Jul-21, so Clutch has had this car through once already and it came back within about a year.",
+      "In-service mid-2024, so basic warranty (3yr/60,000 km) runs out around mid-2027 — under a year left, NOT the two years the model year implies."
     ]
   },
   {

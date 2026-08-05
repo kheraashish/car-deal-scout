@@ -132,6 +132,7 @@ a.go:hover{background:var(--accent);color:var(--bg);border-color:var(--accent)}
       <button class="chip" data-f="takeover" aria-pressed="false">Lease takeover</button>
       <span style="width:100%;height:0"></span>
       <button class="chip" data-f="hybrid" aria-pressed="false">Hybrid only</button>
+      <button class="chip" data-f="warranty" aria-pressed="false">Warranty &gt; 1 yr</button>
       <button class="chip" data-f="budget" aria-pressed="false">Within biweekly budget</button>
       <button class="chip" data-f="colour" aria-pressed="false">Colour rule passes</button>
       <button class="chip" data-f="pano"   aria-pressed="false">Panoramic roof</button>
@@ -323,7 +324,31 @@ function compute(d){
 
 /* Odometer plausibility. Canadian average is ~15,000-20,000 km/yr. Well under that
  * is not proof of fraud, but it is the thing to verify before anything else. */
-const kmPerYear = d => d.km / Math.max(1, (2026.6 - d.year));
+const NOW = 2026.59;                       // 2026-08-04 as a decimal year
+const kmPerYear = d => d.km / Math.max(1, (NOW - d.year));
+
+/* Warranty. Two limits run at once — years AND kilometres — and the FIRST one you
+ * reach ends the coverage. A low-km car keeps its date limit; a high-km car burns
+ * through the distance limit years early. Honda, Toyota and Subaru Canada all use
+ * 3yr/60,000 basic and 5yr/100,000 powertrain; hybrid components run 8yr/160,000.
+ * in-service defaults to the model year — override with `inService` when a Carfax
+ * gives the real date, because a demo's clock started before you bought it. */
+const W = { basic:[3,60000], power:[5,100000], hybrid:[8,160000] };
+function warranty(d){
+  const inSvc = d.inService ?? (d.status === "new" ? NOW : d.year);
+  const rate  = d.status === "new" ? 18000 : Math.max(3000, kmPerYear(d));
+  const km    = d.status === "new" ? 0 : (d.km || 0);
+  const calc = ([yr, lim]) => {
+    const byDate = inSvc + yr - NOW;         // years left on the clock
+    const byKm   = (lim - km) / rate;        // years left on distance, at this use rate
+    return { yrs: Math.min(byDate, byKm), binds: byDate <= byKm ? "time" : "km" };
+  };
+  return { basic: calc(W.basic), power: calc(W.power),
+           hybrid: d.powertrain === "hybrid" ? calc(W.hybrid) : null, inSvc };
+}
+const wTxt = w => w.yrs <= 0 ? "EXPIRED"
+  : w.yrs < 1 ? `${Math.round(w.yrs*12)} mo (${w.binds})`
+  : `${w.yrs.toFixed(1)} yr (${w.binds})`;
 function odoFlag(d){
   if (d.status === "new" || !d.km || d.km < 500) return null;
   const r = kmPerYear(d);
@@ -337,6 +362,7 @@ function passes(d){
   const cond = ["new","used","demo","takeover"].filter(s => f.has(s));
   if (cond.length && !cond.includes(d.status)) return false;
   if (f.has("hybrid") && d.powertrain !== "hybrid") return false;
+  if (f.has("warranty") && warranty(d).basic.yrs < 1) return false;
   if (f.has("colour") && d.colourOk !== true) return false;
   if (f.has("pano")   && d.pano !== true) return false;
   if (f.has("bench")  && d.seating !== "bench") return false;
@@ -356,10 +382,14 @@ function render(){
   $("#empty").hidden = rows.length > 0;
   $("#body").innerHTML = rows.map(({d,c},i) => {
     const band = v => v<=BUDGET_MAX ? `<span class="in">${money2(v)}</span>` : `<span class="over">${money2(v)}</span>`;
-    const odo = odoFlag(d);
+    const odo = odoFlag(d), w = warranty(d);
     const flags = [
       `<span class="tag cond c-${d.status}">${d.status==="takeover"?"takeover":d.status}</span>`,
-      d.verified==="quote" ? '<span class="tag q">quoted</span>' : '',
+      d.flag ? `<span class="tag miss">${d.flag}</span>` : '',
+      d.verified==="carfax" ? '<span class="tag q">carfax read</span>'
+        : d.verified==="quote" ? '<span class="tag q">quoted</span>' : '',
+      w.basic.yrs <= 0 ? '<span class="tag miss">no basic warranty</span>'
+        : w.basic.yrs < 1 ? `<span class="tag est">warranty ${Math.round(w.basic.yrs*12)} mo</span>` : '',
       odo ? `<span class="tag ${odo.k==="bad"?"miss":"est"}">${odo.t}</span>` : '',
       d.colourOk===null ? '<span class="tag miss">colour unknown</span>' : '',
       d.colourOk===false ? '<span class="tag miss">colour fails</span>' : ''
@@ -398,6 +428,10 @@ function render(){
         <div><span>Buy out at 24mo</span>${money(c.own24)}</div>
         <div><span>Carfax</span>${d.carfax===null?"not checked":d.carfax?"available":"MISSING — disqualify"}</div>
         <div><span>Use rate</span>${d.status==="new"||!d.km?"—":Math.round(kmPerYear(d)).toLocaleString()+" km/yr"}</div>
+        <div><span>Basic warranty left</span>${wTxt(warranty(d).basic)}</div>
+        <div><span>Powertrain left</span>${wTxt(warranty(d).power)}</div>
+        ${warranty(d).hybrid?`<div><span>Hybrid components</span>${wTxt(warranty(d).hybrid)}</div>`:""}
+        <div><span>In service from</span>${d.inService?"confirmed "+d.inService:"assumed "+d.year+" (unverified)"}</div>
         <div><span>VIN</span>${d.vin||"—"}</div>
       </div>
       <ul>${(d.notes||[]).map(n=>`<li>${n}</li>`).join("")}</ul>
