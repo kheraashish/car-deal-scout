@@ -50,6 +50,10 @@ tr.row:hover td{background:color-mix(in oklab,var(--accent) 8%,transparent)}
 .c-demo{border-color:var(--warn);color:var(--warn)}
 .c-used{border-color:var(--dim);color:var(--ink)}
 .c-takeover{border-color:#7aa2f7;color:#7aa2f7}
+.s-franchise{border-color:var(--good);color:var(--good)}
+.s-clutch{border-color:var(--good);color:var(--good)}
+.s-crossbrand{border-color:var(--warn);color:var(--warn)}
+.s-independent,.s-private{border-color:var(--bad);color:var(--bad)}
 .in{color:var(--good);font-weight:600}
 .over{color:var(--bad)}
 .detail td{background:color-mix(in oklab,var(--accent) 5%,transparent);white-space:normal;text-align:left}
@@ -133,6 +137,7 @@ a.go:hover{background:var(--accent);color:var(--bg);border-color:var(--accent)}
       <span style="width:100%;height:0"></span>
       <button class="chip" data-f="hybrid" aria-pressed="false">Hybrid only</button>
       <button class="chip" data-f="warranty" aria-pressed="false">Warranty &gt; 1 yr</button>
+      <button class="chip" data-f="trusted" aria-pressed="false">Franchise or Clutch only</button>
       <button class="chip" data-f="budget" aria-pressed="false">Within biweekly budget</button>
       <button class="chip" data-f="colour" aria-pressed="false">Colour rule passes</button>
       <button class="chip" data-f="pano"   aria-pressed="false">Panoramic roof</button>
@@ -333,6 +338,13 @@ const kmPerYear = d => d.km / Math.max(1, (NOW - d.year));
  * 3yr/60,000 basic and 5yr/100,000 powertrain; hybrid components run 8yr/160,000.
  * in-service defaults to the model year — override with `inService` when a Carfax
  * gives the real date, because a demo's clock started before you bought it. */
+/* Who is actually selling it. A brand-matched franchise store is the only seller
+ * that can put the car through that manufacturer's Certified Pre-Owned programme —
+ * extended powertrain cover, a factory multi-point inspection, and techs trained on
+ * this model. A Nissan store selling a Honda is still a real dealership, but it
+ * cannot Certify it and its shop has never worked on one. */
+const SELLER_LBL = { franchise:"franchise", crossbrand:"wrong-brand dealer",
+  clutch:"Clutch", independent:"independent lot", private:"private seller" };
 const W = { basic:[3,60000], power:[5,100000], hybrid:[8,160000] };
 function warranty(d){
   const inSvc = d.inService ?? (d.status === "new" ? NOW : d.year);
@@ -363,6 +375,7 @@ function passes(d){
   if (cond.length && !cond.includes(d.status)) return false;
   if (f.has("hybrid") && d.powertrain !== "hybrid") return false;
   if (f.has("warranty") && warranty(d).basic.yrs < 1) return false;
+  if (f.has("trusted") && !["franchise","clutch"].includes(d.sellerType)) return false;
   if (f.has("colour") && d.colourOk !== true) return false;
   if (f.has("pano")   && d.pano !== true) return false;
   if (f.has("bench")  && d.seating !== "bench") return false;
@@ -403,7 +416,8 @@ function render(){
              title="Open this exact vehicle" onclick="event.stopPropagation()">↗</a>`:""}</div>
         <div class="meta">${flags}${d.colour||"colour TBC"} · ${d.powertrain}${d.km?` · ${d.km.toLocaleString()} km`:""}</div>
       </td>
-      <td class="l"><div>${d.dealer}</div><div class="meta">${d.city} · ${d.distanceKm} km</div></td>
+      <td class="l"><div>${d.dealer}</div>
+        <div class="meta"><span class="tag s-${d.sellerType}">${SELLER_LBL[d.sellerType]||d.sellerType}</span>${d.city} · ${d.distanceKm} km</div></td>
       <td>${money(c.allIn)}</td>
       <td>${band(c.fin)}<div class="meta">${c.fterm} mo @ ${d.financeApr}%</div></td>
       <td>${band(c.lease)}<div class="meta">${c.inherited?`${c.lterm} mo left · inherited`:`${c.lterm} mo @ ${d.leaseApr}%`}</div></td>
@@ -432,6 +446,12 @@ function render(){
         <div><span>Powertrain left</span>${wTxt(warranty(d).power)}</div>
         ${warranty(d).hybrid?`<div><span>Hybrid components</span>${wTxt(warranty(d).hybrid)}</div>`:""}
         <div><span>In service from</span>${d.inService?"confirmed "+d.inService:"assumed "+d.year+" (unverified)"}</div>
+        <div><span>Seller</span>${SELLER_LBL[d.sellerType]||d.sellerType}</div>
+        <div><span>Certified Pre-Owned</span>${
+          d.status==="new" ? "n/a — new"
+          : d.sellerType==="franchise" ? "possible — ask for "+d.make+" Certified"
+          : d.sellerType==="clutch" ? "Clutch inspection + Carfax + 10-day return"
+          : "NOT available from this seller"}</div>
         <div><span>VIN</span>${d.vin||"—"}</div>
       </div>
       <ul>${(d.notes||[]).map(n=>`<li>${n}</li>`).join("")}</ul>
