@@ -140,9 +140,9 @@ window.DEALS = [
     dealer: "LeaseBusters private seller", city: "Scarborough, ON", distanceKm: 6,
     msrp: 56000, price: 56000, fees: 600, incentives: 0,
     financeApr: 5.69, financeMonths: 60,
-    leaseApr: 0, leaseMonths: 25, residualPct: 40, kmPerYear: 5556,
+    leaseApr: 0, leaseMonths: 25, residualPct: 41.7152, kmPerYear: 5556,
     fixedLeaseBiweekly: 468,      // $1,014/mo actual, inherited
-    residualSource: "estimated", carfax: null,
+    residualSource: "quoted", carfax: null,   // buyout $23,360.50 confirmed on detail page
     url: "https://www.leasebusters.com/details/605182/2023-Toyota-RAV4%20Prime", evidence: [], verified: "listing",
     notes: [
       "REJECT — included only to show what the takeover trap looks like, because you will meet more of these.",
