@@ -298,6 +298,200 @@ window.DEALS = [
     ]
   },
 
+  /* ============ $30-40K USED BUDGET (Clutch) — Honda / Toyota / Subaru ============
+   * $15,000 down, balance at 7.99% over 48 months, possibly cleared in 24.
+   * All GAS unless flagged. At this budget you get low km OR a hybrid, not both. */
+  {
+    id: "clutch-crv-sport-2025-silver",
+    status: "used",
+    year: 2025, make: "Honda", model: "CR-V", trim: "Sport AWD",
+    powertrain: "gas",
+    colour: "Silver", colourOk: true,
+    seating: null, pano: false,
+    km: 23097, vin: "2HKRS4H56SH114602", stock: null,
+    dealer: "Clutch.ca (delivered)", city: "Online / delivered", distanceKm: 0,
+    msrp: 42000, price: 38590, fees: 120, incentives: 0,
+    financeApr: 7.99, financeMonths: 48,
+    leaseApr: 8.99, leaseMonths: 24, residualPct: 55, kmPerYear: 24000,
+    residualSource: "estimated", carfax: true, depPct: 10.5,
+    url: "https://www.clutch.ca/vehicles/106839",
+    evidence: [], verified: "listing",
+    notes: [
+      "THE HEDGE PICK. One model year old, so the steepest year of depreciation is already behind it — it holds ~85% of as-new price, vs the RAV4's abnormal 97%.",
+      "GAS, NOT HYBRID — confirmed twice: Clutch lists the fuel as Gasoline and the VIN (2HKRS4H56...) matches the non-hybrid CR-V. In Canada the 2025 'Sport' badge is normally the hybrid trim, so this listing contradicts the usual lineup. CONFIRM THE POWERTRAIN BEFORE BUYING — a hybrid is worth meaningfully more than a gas car at the same price.",
+      "MSRP set to ~$42,000 on the assumption it is a gas AWD. If it turns out to be the hybrid, as-new was ~$45,500 and this is a considerably better deal than the table shows.",
+      "Clean claim history. Balance of Honda 3yr/60,000 km basic warranty remains on kilometres.",
+      "Pick this over the RAV4 if you might keep the car longer than two years, or if you don't want to carry the RAV4's used-market-premium risk."
+    ]
+  },
+  {
+    id: "clutch-crv-sport-2025-blue",
+    status: "used",
+    year: 2025, make: "Honda", model: "CR-V", trim: "Sport AWD",
+    powertrain: "gas",
+    colour: "Blue", colourOk: true,
+    seating: null, pano: false,
+    km: 27908, vin: "2HKRS4H55SH100481", stock: null,
+    dealer: "Clutch.ca (delivered)", city: "Online / delivered", distanceKm: 0,
+    msrp: 42000, price: 39290, fees: 120, incentives: 0,
+    financeApr: 7.99, financeMonths: 48,
+    leaseApr: 8.99, leaseMonths: 24, residualPct: 55, kmPerYear: 24000,
+    residualSource: "estimated", carfax: true, depPct: 10.5,
+    url: "https://www.clutch.ca/vehicles/115591",
+    evidence: [], verified: "listing",
+    notes: [
+      "Blue twin of the silver 2025 CR-V Sport. $700 more for 4,811 more km — the silver car is the better buy of the two.",
+      "Also confirmed GAS by VIN (2HKRS4H55...) and by Clutch's fuel field. Same powertrain caveat applies."
+    ]
+  },
+  {
+    id: "clutch-rav4-xle-2022-blue",
+    status: "used",
+    year: 2022, make: "Toyota", model: "RAV4", trim: "XLE AWD",
+    powertrain: "gas",
+    colour: "Blue", colourOk: true,
+    seating: null, pano: false,
+    km: 49150, vin: null, stock: null,
+    dealer: "Clutch.ca (delivered)", city: "Online / delivered", distanceKm: 0,
+    msrp: 36500, price: 34690, fees: 120, incentives: 0,
+    financeApr: 7.99, financeMonths: 48,
+    leaseApr: 8.99, leaseMonths: 24, residualPct: 55, kmPerYear: 24000,
+    residualSource: "estimated", carfax: true, depPct: 8.5,
+    url: "https://www.clutch.ca/vehicles/107092",
+    evidence: [], verified: "listing",
+    notes: [
+      "$800 cheaper than the 19,041 km silver RAV4 but with 30,109 MORE kilometres. The silver car is far better value — this one is here to prove it.",
+      "Same RAV4 used-market-premium risk: 95% of as-new price after four years."
+    ]
+  },
+  {
+    id: "clutch-forester-limited-2024",
+    status: "used",
+    year: 2024, make: "Subaru", model: "Forester", trim: "Limited AWD",
+    powertrain: "gas",
+    colour: "Silver", colourOk: true,
+    seating: null, pano: false,
+    km: 21357, vin: null, stock: null,
+    dealer: "Clutch.ca (delivered)", city: "Online / delivered", distanceKm: 0,
+    msrp: 41000, price: 37590, fees: 120, incentives: 0,
+    financeApr: 7.99, financeMonths: 48,
+    leaseApr: 8.99, leaseMonths: 24, residualPct: 52, kmPerYear: 24000,
+    residualSource: "estimated", carfax: true, depPct: 12,
+    url: "https://www.clutch.ca/vehicles/118063",
+    evidence: [], verified: "listing",
+    notes: [
+      "Best-equipped low-km Subaru in budget. Symmetrical AWD is genuinely better than the Toyota/Honda systems in snow.",
+      "Depreciates faster than either Japanese rival — ~12%/yr vs RAV4's ~8.5%. Over two years that gap is roughly $2,700.",
+      "CVT. Subaru's older boxer engines had oil-consumption and head-gasket history; the current generation is much improved, but a Carfax and service history still matter."
+    ]
+  },
+  {
+    id: "clutch-crosstrek-conv-2024",
+    status: "used",
+    year: 2024, make: "Subaru", model: "Crosstrek", trim: "Convenience AWD",
+    powertrain: "gas",
+    colour: "Blue", colourOk: true,
+    seating: null, pano: false,
+    km: 19712, vin: null, stock: null,
+    dealer: "Clutch.ca (delivered)", city: "Online / delivered", distanceKm: 0,
+    msrp: 31500, price: 28990, fees: 120, incentives: 0,
+    financeApr: 7.99, financeMonths: 48,
+    leaseApr: 8.99, leaseMonths: 24, residualPct: 55, kmPerYear: 24000,
+    residualSource: "estimated", carfax: true, depPct: 10,
+    url: "https://www.clutch.ca/vehicles/117882",
+    evidence: [], verified: "listing",
+    notes: [
+      "CHEAPEST TWO YEARS OF DRIVING in the whole set — but only because it is a smaller, cheaper car. Do not read the low cost as better value; it is less vehicle.",
+      "Crosstrek is a compact hatch on stilts, not a compact SUV. Cargo and rear seat are a clear step below CR-V and RAV4. Drive one before you decide the size works.",
+      "19,712 km on a 2024, AWD, base-ish trim. If budget discipline matters more than space, this is the honest answer."
+    ]
+  },
+  {
+    id: "clutch-crosstrek-onyx-2024",
+    status: "used",
+    year: 2024, make: "Subaru", model: "Crosstrek", trim: "Onyx AWD",
+    powertrain: "gas",
+    colour: "Blue", colourOk: true,
+    seating: null, pano: false,
+    km: 26168, vin: null, stock: null,
+    dealer: "Clutch.ca (delivered)", city: "Online / delivered", distanceKm: 0,
+    msrp: 34000, price: 30990, fees: 120, incentives: 0,
+    financeApr: 7.99, financeMonths: 48,
+    leaseApr: 8.99, leaseMonths: 24, residualPct: 55, kmPerYear: 24000,
+    residualSource: "estimated", carfax: true, depPct: 10.5,
+    url: "https://www.clutch.ca/vehicles/119022",
+    evidence: [], verified: "listing",
+    notes: [
+      "Onyx trim adds the better X-MODE, roof rails and a nicer interior over Convenience. $2,000 more for 6,456 more km.",
+      "Same size caveat as the other Crosstrek."
+    ]
+  },
+  {
+    id: "clutch-outback-limited-2024",
+    status: "used",
+    year: 2024, make: "Subaru", model: "Outback", trim: "Limited AWD",
+    powertrain: "gas",
+    colour: "Blue", colourOk: true,
+    seating: null, pano: false,
+    km: 52550, vin: null, stock: null,
+    dealer: "Clutch.ca (delivered)", city: "Online / delivered", distanceKm: 0,
+    msrp: 45000, price: 36090, fees: 120, incentives: 0,
+    financeApr: 7.99, financeMonths: 48,
+    leaseApr: 8.99, leaseMonths: 24, residualPct: 50, kmPerYear: 24000,
+    residualSource: "estimated", carfax: true, depPct: 12.5,
+    url: "https://www.clutch.ca/vehicles/115159",
+    evidence: [], verified: "listing",
+    notes: [
+      "Most car for the money on paper: a $45,000 Outback Limited for $36,090, so the first owner absorbed $8,910 in two years.",
+      "That is also the warning — it holds only 80% after two years, the weakest retention of the low-km options. It depreciates fast going in AND going out.",
+      "52,550 km is nearly triple the Forester's. Bigger and more comfortable than everything else here for long drives."
+    ]
+  },
+  {
+    id: "clutch-venza-limited-2021",
+    status: "used",
+    year: 2021, make: "Toyota", model: "Venza", trim: "Limited AWD",
+    powertrain: "hybrid",
+    colour: "Silver", colourOk: true,
+    seating: null, pano: true,
+    km: 71041, vin: null, stock: null,
+    dealer: "Clutch.ca (delivered)", city: "Online / delivered", distanceKm: 0,
+    msrp: 48000, price: 35990, fees: 120, incentives: 0,
+    financeApr: 7.99, financeMonths: 48,
+    leaseApr: 8.99, leaseMonths: 24, residualPct: 48, kmPerYear: 24000,
+    residualSource: "estimated", carfax: true, depPct: 13,
+    url: "https://www.clutch.ca/vehicles/105699",
+    evidence: [], verified: "listing",
+    notes: [
+      "ONE OF ONLY TWO HYBRIDS IN YOUR BUDGET. Venza is hybrid-only in Canada, so this is a genuine Toyota hybrid AWD for $35,990.",
+      "Limited trim gets the panoramic roof (Toyota's electrochromic 'Star Gaze' on this generation).",
+      "71,041 km and five years old — the trade you make for a hybrid at this price. Toyota hybrid batteries are warranted 8yr/160,000 km, so battery coverage is still live.",
+      "Weakest retention here (~75% held, ~13%/yr forward). Buy it to keep, not to flip in two years.",
+      "Venza was discontinued after 2024, which softens resale further. Priced in, but worth knowing."
+    ]
+  },
+  {
+    id: "clutch-rav4-hybrid-se-2023",
+    status: "used",
+    year: 2023, make: "Toyota", model: "RAV4 Hybrid", trim: "SE AWD",
+    powertrain: "hybrid",
+    colour: "Silver", colourOk: true,
+    seating: null, pano: false,
+    km: 72875, vin: null, stock: null,
+    dealer: "Clutch.ca (delivered)", city: "Online / delivered", distanceKm: 0,
+    msrp: 42000, price: 35690, fees: 120, incentives: 0,
+    financeApr: 7.99, financeMonths: 48,
+    leaseApr: 8.99, leaseMonths: 24, residualPct: 55, kmPerYear: 24000,
+    residualSource: "estimated", carfax: true, depPct: 8.5,
+    url: "https://www.clutch.ca/vehicles/108272",
+    evidence: [], verified: "listing",
+    notes: [
+      "THE OTHER HYBRID IN BUDGET, and the better one — RAV4 Hybrid holds value far better than the Venza.",
+      "72,875 km is the cost of entry. Toyota basic warranty (3yr/60,000 km) is expired on kilometres; hybrid battery coverage (8yr/160,000 km) is not.",
+      "If hybrid is non-negotiable at this budget, this is the pick. If low kilometres matter more, take the 19,041 km gas RAV4 instead."
+    ]
+  },
+
   /* ============ CLUTCH.CA (no-haggle used, delivered) ============
    * NOTE Clutch advertises biweekly EXCLUDING HST. Their headline payment is on the
    * pre-tax price, so the real financed payment is ~13% higher. Fees here are the
@@ -312,7 +506,7 @@ window.DEALS = [
     km: 19041, vin: "2T3R1RFV7NC309108", stock: null,
     dealer: "Clutch.ca (delivered)", city: "Online / delivered", distanceKm: 0,
     msrp: 40000, price: 35490, fees: 120, incentives: 0,
-    financeApr: 5.69, financeMonths: 60,
+    financeApr: 7.99, financeMonths: 48,
     leaseApr: 6.89, leaseMonths: 24, residualPct: 55, kmPerYear: 24000,
     residualSource: "estimated", carfax: null,
     url: "https://www.clutch.ca/vehicles/112765",
@@ -335,7 +529,7 @@ window.DEALS = [
     km: 43259, vin: "2T35WRFV3PW172931", stock: null,
     dealer: "Clutch.ca (delivered)", city: "Online / delivered", distanceKm: 0,
     msrp: 48000, price: 43890, fees: 120, incentives: 0,
-    financeApr: 5.69, financeMonths: 60,
+    financeApr: 7.99, financeMonths: 48,
     leaseApr: 6.89, leaseMonths: 24, residualPct: 58, kmPerYear: 24000,
     residualSource: "estimated", carfax: null,
     url: "https://www.clutch.ca/vehicles/111237",
@@ -355,7 +549,7 @@ window.DEALS = [
     km: 68587, vin: "5TDKDRBH8PS526436", stock: null,
     dealer: "Clutch.ca (delivered)", city: "Online / delivered", distanceKm: 0,
     msrp: 52000, price: 39490, fees: 120, incentives: 0,
-    financeApr: 5.69, financeMonths: 60,
+    financeApr: 7.99, financeMonths: 48,
     leaseApr: 6.89, leaseMonths: 24, residualPct: 50, kmPerYear: 24000,
     residualSource: "estimated", carfax: null,
     url: "https://www.clutch.ca/vehicles/102323",

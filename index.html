@@ -75,8 +75,8 @@ a.go:hover{background:var(--accent);color:var(--bg);border-color:var(--accent)}
 <body>
 <div class="wrap">
   <h1>Car Deal Scout</h1>
-  <p class="sub">GTA · 200 km radius · CR-V EX-L Hybrid / RAV4 / Grand Highlander · silver &amp; blue only ·
-     target <strong>$400–500 biweekly</strong></p>
+  <p class="sub">GTA · 200 km radius · Honda / Toyota / Subaru · silver &amp; blue only ·
+     new, demo, used and lease takeovers · ranked by <strong>true 2-year cost</strong></p>
 
   <div class="panel">
     <div class="ctrls">
@@ -114,6 +114,11 @@ a.go:hover{background:var(--accent);color:var(--bg);border-color:var(--accent)}
         <label for="hst">HST %</label>
         <input type="number" id="hst" value="13" step="0.5" min="0">
       </div>
+      <div>
+        <label for="depadj">Depreciation stress test</label>
+        <input type="range" id="depadj" min="-4" max="10" step="0.5" value="0">
+        <div class="val" id="depadjV">model default</div>
+      </div>
     </div>
     <div class="chips" id="filters">
       <button class="chip" data-f="hybrid" aria-pressed="false">Hybrid only</button>
@@ -133,7 +138,8 @@ a.go:hover{background:var(--accent);color:var(--bg);border-color:var(--accent)}
           <th>Finance<br>biweekly</th>
           <th>Lease 24mo<br>biweekly</th>
           <th>Buyback</th>
-          <th>Cost to own<br>at 24 mo</th>
+          <th>Resale<br>at 24 mo</th>
+          <th>2-yr TRUE cost<br><span style="font-weight:400;text-transform:none">what driving it costs</span></th>
         </tr></thead>
         <tbody id="body"></tbody>
       </table>
@@ -144,9 +150,14 @@ a.go:hover{background:var(--accent);color:var(--bg);border-color:var(--accent)}
   <p class="note">
     <strong>All-in cash ("last mile")</strong> = price + freight/PDI + fees − incentives, plus HST, plus plates,
     plus the round-trip drive to collect it. It is what leaves your account to own the car outright today.<br>
-    <strong>Cost to own at 24 months</strong> = down payment + 24 months of payments + what you still owe
-    (loan balance on finance, buyback price on lease). This is the only apples-to-apples number across
-    finance and lease — a low payment with a punitive buyback is not a good deal.<br>
+    <strong>2-yr TRUE cost</strong> = what two years of driving actually costs, and the only number that
+    compares finance to lease. On finance: down payment + payments + what you still owe, <em>minus</em> what
+    the car sells for. On a lease: down payment + payments — you hand it back and own nothing, so there is no
+    resale. Whichever is lower is the route named under the figure.<br>
+    <strong>Depreciation stress test</strong> adds percentage points to every car's assumed annual
+    depreciation. These rates are segment estimates, <em>not</em> queried valuations. Use it on the RAV4s:
+    they hold ~97% of as-new price after four years, which is abnormal post-2021-shortage pricing. Push the
+    slider to +3 or +4 and see whether they still win.<br>
     <strong>Buyback</strong> = residual × MSRP, plus HST and a ~$300 purchase-option fee. Residuals marked
     <span class="tag est">est</span> are estimates and must be confirmed by the dealer;
     <span class="tag q">quoted</span> came off a real quote.
@@ -197,6 +208,19 @@ function lease(d, down, months, hst){
 function lastMile(d, hst, kmRate, plates){
   return preTaxTotal(d)*(1+hst/100) + plates + (d.distanceKm||0)*2*kmRate;
 }
+
+/* Depreciation. Annual % of CURRENT value lost, by nameplate — RAV4 holds value
+ * best in this set, Subaru and the discontinued Venza worst. These are segment
+ * estimates, NOT queried valuations: stress them with the slider.
+ * The slider adds percentage points on top, which is the honest way to ask
+ * "what if the RAV4's abnormal used-market premium unwinds?" */
+const DEP = { "RAV4":8.5, "RAV4 Hybrid":8.5, "CR-V":10.5, "CR-V Hybrid":10.5,
+  "Crosstrek":10.5, "Forester":12, "Outback":12.5, "Highlander":12, "Venza":13,
+  "Grand Highlander":12, "Grand Highlander Hybrid":12 };
+const depOf = d => Math.max(0, (d.depPct ?? DEP[d.model] ?? 11) + (+$("#depadj").value));
+
+// Private-sale value in 2 years, pre-tax. You pay HST going in; you don't collect it going out.
+const resale24 = d => d.price * Math.pow(1 - depOf(d)/100, 2);
 
 /* Hidden costs — the money that is real but never on the advertised payment.
  * "neg" = negotiable, argue it. "stat" = statutory, don't waste breath.
@@ -270,11 +294,19 @@ function compute(d){
   const l = lease(d, down, lm, hst);
   const paid24 = Math.min(52, f.n);
   const leaseBw = Math.min(52, Math.round(lm/12*26));   // takeovers can end sooner than 24 mo
+  const resale = resale24(d);
+  // TRUE cost of 2 years of driving — the only metric that compares finance to lease.
+  // Finance: everything you put in, plus what you still owe, minus what the car sells for.
+  // Lease:   everything you put in. You hand it back and own nothing, so no resale.
+  const finTrue   = down + f.pmt*paid24 + balanceAfter(f, paid24) - resale;
+  const leaseTrue = (d.fixedLeaseBiweekly!=null?0:down) + l.biweekly*leaseBw;
   return {
     allIn: lastMile(d, hst, kmRate, plates),
     fin: f.pmt, lease: l.biweekly, buyback: l.buyback,
     own24: down + f.pmt*paid24 + balanceAfter(f, paid24),
     leaseOwn24: (d.fixedLeaseBiweekly!=null?0:down) + l.biweekly*leaseBw + l.buyback,
+    resale, dep: depOf(d), deprec: d.price - resale,
+    finTrue, leaseTrue, best: Math.min(finTrue, leaseTrue),
     fterm: fm, lterm: lm, inherited: !!l.inherited
   };
 }
@@ -291,9 +323,12 @@ function passes(d){
 
 function render(){
   $("#downV").textContent = money(+$("#down").value);
+  const dj = +$("#depadj").value;
+  $("#depadjV").textContent = dj === 0 ? "model default"
+    : (dj > 0 ? `+${dj} pts/yr — harsher` : `${dj} pts/yr — kinder`);
   const rows = window.DEALS.filter(passes)
     .map(d => ({d, c: compute(d)}))
-    .sort((a,b) => Math.min(a.c.own24,a.c.leaseOwn24) - Math.min(b.c.own24,b.c.leaseOwn24));
+    .sort((a,b) => a.c.best - b.c.best);
 
   $("#empty").hidden = rows.length > 0;
   $("#body").innerHTML = rows.map(({d,c},i) => {
@@ -318,8 +353,9 @@ function render(){
       <td>${band(c.fin)}<div class="meta">${c.fterm} mo @ ${d.financeApr}%</div></td>
       <td>${band(c.lease)}<div class="meta">${c.inherited?`${c.lterm} mo left · inherited`:`${c.lterm} mo @ ${d.leaseApr}%`}</div></td>
       <td>${money(c.buyback)}<div class="meta">${d.residualPct}% of MSRP</div></td>
-      <td><strong>${money(Math.min(c.own24,c.leaseOwn24))}</strong>
-          <div class="meta">${c.own24<=c.leaseOwn24?"finance":"lease"} route</div></td>
+      <td>${money(c.resale)}<div class="meta">−${money(c.deprec)} · ${c.dep.toFixed(1)}%/yr</div></td>
+      <td><strong>${money(c.best)}</strong>
+          <div class="meta">${c.finTrue<=c.leaseTrue?"finance &amp; sell":"lease &amp; walk"}</div></td>
     </tr>
     <tr class="detail" hidden data-d="${i}"><td colspan="8">
       <div class="kv">
@@ -329,8 +365,12 @@ function render(){
         <div><span>Incentives</span>${money(-(d.incentives||0))}</div>
         <div><span>HST</span>${money(preTaxTotal(d)*(+$("#hst").value/100))}</div>
         <div><span>Drive to collect</span>${money(d.distanceKm*2*(+$("#kmrate").value))}</div>
-        <div><span>Lease route 24mo</span>${money(c.leaseOwn24)}</div>
-        <div><span>Finance route 24mo</span>${money(c.own24)}</div>
+        <div><span>Resale in 2 yrs</span>${money(c.resale)}</div>
+        <div><span>Depreciation</span>${money(c.deprec)} (${c.dep.toFixed(1)}%/yr)</div>
+        <div><span>Held of as-new</span>${d.msrp?Math.round(d.price/d.msrp*100)+"%":"—"}</div>
+        <div><span>TRUE cost, finance</span>${money(c.finTrue)}</div>
+        <div><span>TRUE cost, lease</span>${money(c.leaseTrue)}</div>
+        <div><span>Buy out at 24mo</span>${money(c.own24)}</div>
         <div><span>Carfax</span>${d.carfax===null?"not checked":d.carfax?"available":"MISSING — disqualify"}</div>
         <div><span>VIN</span>${d.vin||"—"}</div>
       </div>
