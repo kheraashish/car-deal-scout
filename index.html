@@ -66,6 +66,9 @@ table.hidt td.amt{text-align:right;font-variant-numeric:tabular-nums;white-space
 a.visit{display:inline-block;background:var(--accent);color:var(--bg);font-weight:600;font-size:13.5px;
   padding:8px 14px;border-radius:6px;text-decoration:none}
 a.visit:hover{filter:brightness(1.1)}
+a.go{text-decoration:none;color:var(--accent);font-weight:700;font-size:13px;
+  border:1px solid var(--line);border-radius:5px;padding:0 5px;margin-left:5px;vertical-align:middle}
+a.go:hover{background:var(--accent);color:var(--bg);border-color:var(--accent)}
 @media(max-width:640px){ .wrap{padding:18px 12px 60px} h1{font-size:21px} }
 </style>
 </head>
@@ -242,6 +245,16 @@ function hiddenCosts(d){
   const cap=51078.50, res=59336*0.70;
   const m=((cap-res)/24 + (cap+res)*(6.89/2400));
   near(m*12/26, 306.24, 0.02, "lease biweekly pre-tax (Toyota quote)");
+
+  // Every deal must deep-link to ONE car, never to a search/results page.
+  // A search-page link is how you lose a listing: you land on 3,000 results and
+  // the car you wanted is gone. Fail loudly rather than shipping one.
+  const SEARCHY = /\/cars\/[a-z]|vehicle-search-result|\/search|results\?|\?makes=|\/offers\/?$/i;
+  const broken = (window.DEALS||[]).filter(d => !d.url || SEARCHY.test(d.url));
+  if (broken.length) console.error(
+    `SELF-TEST FAIL — ${broken.length} deal(s) missing a per-vehicle link:`,
+    broken.map(d => d.id));
+  else console.log(`self-test ok — all ${window.DEALS.length} deals deep-link to a single vehicle`);
 })();
 
 /* ---- render ---- */
@@ -295,7 +308,9 @@ function render(){
     <tr class="row" data-i="${i}">
       <td class="l">${i+1}</td>
       <td class="l">
-        <div class="veh">${d.year} ${d.make} ${d.model} ${d.trim}</div>
+        <div class="veh">${d.year} ${d.make} ${d.model} ${d.trim}
+          ${d.url?`<a class="go" href="${d.url}" target="_blank" rel="noopener"
+             title="Open this exact vehicle" onclick="event.stopPropagation()">↗</a>`:""}</div>
         <div class="meta">${flags}${d.colour||"colour TBC"} · ${d.powertrain} · ${d.status}${d.km?` · ${d.km.toLocaleString()} km`:""}</div>
       </td>
       <td class="l"><div>${d.dealer}</div><div class="meta">${d.city} · ${d.distanceKm} km</div></td>

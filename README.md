@@ -25,8 +25,10 @@ reproduces both to the cent. Open the browser console — the self-tests run on 
 |---|---|---|
 | Finance biweekly | `$374.43` | Honda quote, $43,249.72 @ 4.79% / 60 mo |
 | Lease biweekly, pre-tax | `$306.24` | Toyota quote, cap $51,078.50, MSRP $59,336, 70% residual @ 6.89% / 24 mo |
+| Link integrity | every deal deep-links to **one vehicle** | no search or results pages |
 
-Break the maths and the self-test fails loudly in the console.
+Break the maths, or ship a deal whose link points at a search page, and the
+self-test fails loudly in the console.
 
 ### The formulas
 
@@ -83,5 +85,8 @@ Carfax guaranteed).
 
 Prices, kilometres, colour and distance are read from live listings. Where a rate
 or residual was not confirmed by the dealer it is labelled `est` in the table and
-must be confirmed before signing. Inventory moves fast — one listing was delisted
-mid-scan. Re-run the scan before acting.
+must be confirmed before signing.
+
+**Inventory moves fast.** A 2025 RAV4 Hybrid XLE at $43,900 was in the first sweep
+and sold before the second — it has been dropped rather than left as a dead link.
+Re-run the scan before acting on anything here.
