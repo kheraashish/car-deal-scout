@@ -345,6 +345,28 @@ window.DEALS = [
     ]
   },
   {
+    id: "clutch-rav4-xle-2024-blue",
+    status: "used",
+    year: 2024, make: "Toyota", model: "RAV4", trim: "XLE AWD",
+    powertrain: "gas",
+    colour: "Blue", colourOk: true,
+    seating: null, pano: false,
+    km: 33057, vin: "2T3R1RFV0RW451529", stock: null,
+    dealer: "Clutch.ca (delivered)", city: "Online / delivered", distanceKm: 0,
+    msrp: 40500, price: 39390, fees: 120, incentives: 0,
+    financeApr: 7.99, financeMonths: 48,
+    leaseApr: 8.99, leaseMonths: 24, residualPct: 55, kmPerYear: 24000,
+    residualSource: "estimated", carfax: true, depPct: 9,
+    url: "https://www.clutch.ca/vehicles/116850",
+    evidence: [], verified: "listing",
+    notes: [
+      "THE NEWER TOYOTA. Two years old with 33,057 km — about 16,500 km/yr, which is bang-on the Canadian average. Nothing about this odometer needs explaining, unlike the 19,041 km 2022 car.",
+      "Clean claim history, AWD, VIN confirmed. Gas, not hybrid.",
+      "$3,900 more than the 2022 with 19k km, and that premium buys you two model years and a believable service life. If the low-km 2022 makes you uneasy, this is the RAV4 to buy instead.",
+      "Still holds 97% of as-new price — the RAV4 premium risk applies here too. Stress-test it with the slider."
+    ]
+  },
+  {
     id: "clutch-rav4-xle-2022-blue",
     status: "used",
     year: 2022, make: "Toyota", model: "RAV4", trim: "XLE AWD",
@@ -512,7 +534,8 @@ window.DEALS = [
     url: "https://www.clutch.ca/vehicles/112765",
     evidence: [], verified: "listing",
     notes: [
-      "GENUINELY low mileage — 19,041 km on a 2022. The 'manager's demo mileage without the demo price' case you were looking for.",
+      "ODOMETER IS THE FIRST THING TO VERIFY. A 2022 RAV4 went on sale in late 2021, so this car is ~4.5 years old. 19,041 km is about 4,200 km/yr against a Canadian average of 15,000-20,000. That is not impossible — a second car, a retiree, or a 2021-22 work-from-home owner all produce this — but it is anomalous enough that it must be PROVEN, not assumed. Pull the Carfax odometer-reading history (Clutch includes it) and check that readings climb steadily across service visits and registrations. Then confirm the physical car agrees: tyres likely still original, minimal wear on the brake pedal rubber, driver's seat bolster and steering wheel. If the Carfax has a multi-year gap with no readings, walk away.",
+      "If it checks out, the low mileage is genuinely valuable. If you would rather not do the detective work, the 2024 RAV4 XLE at 33,057 km is the same car two years newer with an unremarkable odometer.",
       "Clutch advertises $243 biweekly, but that EXCLUDES HST and licensing. Financing the tax too puts the real payment near $275. Our table shows the tax-inclusive number.",
       "No dealer to haggle with and no drive to collect — Clutch delivers, so last-mile travel cost is $0. That is worth real money against the 134 km Stratford Grand Highlander.",
       "Gas, not hybrid. XLE, so no leather.",

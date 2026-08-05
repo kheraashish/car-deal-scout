@@ -45,6 +45,11 @@ tr.row:hover td{background:color-mix(in oklab,var(--accent) 8%,transparent)}
 .tag.q{border-color:var(--good);color:var(--good)}
 .tag.est{border-color:var(--warn);color:var(--warn)}
 .tag.miss{border-color:var(--bad);color:var(--bad)}
+.tag.cond{font-weight:700}
+.c-new{border-color:var(--accent);color:var(--bg);background:var(--accent)}
+.c-demo{border-color:var(--warn);color:var(--warn)}
+.c-used{border-color:var(--dim);color:var(--ink)}
+.c-takeover{border-color:#7aa2f7;color:#7aa2f7}
 .in{color:var(--good);font-weight:600}
 .over{color:var(--bad)}
 .detail td{background:color-mix(in oklab,var(--accent) 5%,transparent);white-space:normal;text-align:left}
@@ -121,6 +126,11 @@ a.go:hover{background:var(--accent);color:var(--bg);border-color:var(--accent)}
       </div>
     </div>
     <div class="chips" id="filters">
+      <button class="chip" data-f="new"      aria-pressed="false">New</button>
+      <button class="chip" data-f="used"     aria-pressed="false">Used</button>
+      <button class="chip" data-f="demo"     aria-pressed="false">Demo</button>
+      <button class="chip" data-f="takeover" aria-pressed="false">Lease takeover</button>
+      <span style="width:100%;height:0"></span>
       <button class="chip" data-f="hybrid" aria-pressed="false">Hybrid only</button>
       <button class="chip" data-f="budget" aria-pressed="false">Within biweekly budget</button>
       <button class="chip" data-f="colour" aria-pressed="false">Colour rule passes</button>
@@ -311,8 +321,21 @@ function compute(d){
   };
 }
 
+/* Odometer plausibility. Canadian average is ~15,000-20,000 km/yr. Well under that
+ * is not proof of fraud, but it is the thing to verify before anything else. */
+const kmPerYear = d => d.km / Math.max(1, (2026.6 - d.year));
+function odoFlag(d){
+  if (d.status === "new" || !d.km || d.km < 500) return null;
+  const r = kmPerYear(d);
+  if (r < 6000)  return { k:"bad",  t:`${Math.round(r/100)*100} km/yr — VERIFY` };
+  if (r < 10000) return { k:"warn", t:`${Math.round(r/100)*100} km/yr — low` };
+  return null;
+}
+
 function passes(d){
   const f = state.filters, c = compute(d);
+  const cond = ["new","used","demo","takeover"].filter(s => f.has(s));
+  if (cond.length && !cond.includes(d.status)) return false;
   if (f.has("hybrid") && d.powertrain !== "hybrid") return false;
   if (f.has("colour") && d.colourOk !== true) return false;
   if (f.has("pano")   && d.pano !== true) return false;
@@ -333,9 +356,11 @@ function render(){
   $("#empty").hidden = rows.length > 0;
   $("#body").innerHTML = rows.map(({d,c},i) => {
     const band = v => v<=BUDGET_MAX ? `<span class="in">${money2(v)}</span>` : `<span class="over">${money2(v)}</span>`;
+    const odo = odoFlag(d);
     const flags = [
+      `<span class="tag cond c-${d.status}">${d.status==="takeover"?"takeover":d.status}</span>`,
       d.verified==="quote" ? '<span class="tag q">quoted</span>' : '',
-      d.residualSource==="estimated" ? '<span class="tag est">est residual</span>' : '',
+      odo ? `<span class="tag ${odo.k==="bad"?"miss":"est"}">${odo.t}</span>` : '',
       d.colourOk===null ? '<span class="tag miss">colour unknown</span>' : '',
       d.colourOk===false ? '<span class="tag miss">colour fails</span>' : ''
     ].join("");
@@ -346,7 +371,7 @@ function render(){
         <div class="veh">${d.year} ${d.make} ${d.model} ${d.trim}
           ${d.url?`<a class="go" href="${d.url}" target="_blank" rel="noopener"
              title="Open this exact vehicle" onclick="event.stopPropagation()">↗</a>`:""}</div>
-        <div class="meta">${flags}${d.colour||"colour TBC"} · ${d.powertrain} · ${d.status}${d.km?` · ${d.km.toLocaleString()} km`:""}</div>
+        <div class="meta">${flags}${d.colour||"colour TBC"} · ${d.powertrain}${d.km?` · ${d.km.toLocaleString()} km`:""}</div>
       </td>
       <td class="l"><div>${d.dealer}</div><div class="meta">${d.city} · ${d.distanceKm} km</div></td>
       <td>${money(c.allIn)}</td>
@@ -372,6 +397,7 @@ function render(){
         <div><span>TRUE cost, lease</span>${money(c.leaseTrue)}</div>
         <div><span>Buy out at 24mo</span>${money(c.own24)}</div>
         <div><span>Carfax</span>${d.carfax===null?"not checked":d.carfax?"available":"MISSING — disqualify"}</div>
+        <div><span>Use rate</span>${d.status==="new"||!d.km?"—":Math.round(kmPerYear(d)).toLocaleString()+" km/yr"}</div>
         <div><span>VIN</span>${d.vin||"—"}</div>
       </div>
       <ul>${(d.notes||[]).map(n=>`<li>${n}</li>`).join("")}</ul>
