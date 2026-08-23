@@ -78,6 +78,11 @@ a.visit:hover{filter:brightness(1.1)}
 a.go{text-decoration:none;color:var(--accent);font-weight:700;font-size:13px;
   border:1px solid var(--line);border-radius:5px;padding:0 5px;margin-left:5px;vertical-align:middle}
 a.go:hover{background:var(--accent);color:var(--bg);border-color:var(--accent)}
+.tabs{display:flex;gap:6px;margin:0 0 20px;border-bottom:1px solid var(--line)}
+.tab{background:none;border:0;border-bottom:2px solid transparent;color:var(--dim);
+  font:inherit;font-weight:600;font-size:14px;padding:9px 14px;cursor:pointer;margin-bottom:-1px}
+.tab[aria-selected=true]{color:var(--ink);border-bottom-color:var(--accent)}
+.tab:hover{color:var(--ink)}
 @media(max-width:640px){ .wrap{padding:18px 12px 60px} h1{font-size:21px} }
 </style>
 </head>
@@ -87,6 +92,12 @@ a.go:hover{background:var(--accent);color:var(--bg);border-color:var(--accent)}
   <p class="sub">GTA · 200 km radius · Honda / Toyota / Subaru · silver &amp; blue only ·
      new, demo, used and lease takeovers · ranked by <strong>true 2-year cost</strong></p>
 
+  <div class="tabs">
+    <button class="tab" data-tab="deals" aria-selected="true">Deals</button>
+    <button class="tab" data-tab="ev" aria-selected="false">EV vs Hybrid</button>
+  </div>
+
+  <section id="pane-deals">
   <div class="panel">
     <div class="ctrls">
       <div>
@@ -186,6 +197,59 @@ a.go:hover{background:var(--accent);color:var(--bg);border-color:var(--accent)}
     <span class="tag est">est</span> are estimates and must be confirmed by the dealer;
     <span class="tag q">quoted</span> came off a real quote.
   </p>
+  </section>
+
+  <section id="pane-ev" hidden>
+    <div class="panel">
+      <div class="ctrls">
+        <div><label for="ev-kmyr">Commute km/day</label><input type="number" id="ev-kmyr" value="120" step="10" min="0"></div>
+        <div><label for="ev-days">Commute days/yr</label><input type="number" id="ev-days" value="240" step="10" min="0"></div>
+        <div><label for="ev-local">Local km/yr</label><input type="number" id="ev-local" value="3000" step="500" min="0"></div>
+        <div><label for="ev-t1">Trips @300km 1-way</label><input type="number" id="ev-t1" value="6" step="1" min="0"></div>
+        <div><label for="ev-t2">Trips @1000km 1-way</label><input type="number" id="ev-t2" value="2" step="1" min="0"></div>
+        <div><label for="ev-ulo">Alectra ULO $/kWh</label><input type="number" id="ev-ulo" value="0.039" step="0.001" min="0"></div>
+        <div><label for="ev-deliv">Delivery adder $/kWh</label><input type="number" id="ev-deliv" value="0.035" step="0.005" min="0"></div>
+        <div><label for="ev-sc">Supercharger $/kWh</label><input type="number" id="ev-sc" value="0.50" step="0.05" min="0"></div>
+        <div><label for="ev-gas">Gas $/L</label><input type="number" id="ev-gas" value="1.55" step="0.05" min="0"></div>
+      </div>
+      <p class="note" style="margin-top:14px">
+        Alectra ULO <strong>3.9&cent;/kWh, 11pm&ndash;7am every day</strong> (verified). Delivery adder is the
+        volumetric part of your bill &mdash; take Delivery total, subtract the fixed monthly charge, divide by kWh.
+        On-peak weekdays 4&ndash;9pm is <strong>39.1&cent;</strong>, ten times ULO: charge only after 11pm.
+      </p>
+    </div>
+
+    <div class="panel">
+      <h3 style="margin:0 0 12px;font-size:16px">True range &mdash; Brampton winter (Pearson normals: Dec &minus;4, Jan &minus;9, Feb &minus;8, Mar &minus;4 avg low)</h3>
+      <div class="scroll"><table style="min-width:640px"><thead><tr>
+        <th class="l">Condition</th><th>Loss</th><th>Range</th><th>kWh/100km</th><th>Usable 10&ndash;90%</th><th class="l">Frequency</th>
+      </tr></thead><tbody id="ev-range"></tbody></table></div>
+      <p class="note">542 km is the EPA mixed figure. Highway at 110&ndash;120 km/h in cold is the number that
+        matters for you, and it is much lower. Your 120 km commute never gets close to the limit.</p>
+    </div>
+
+    <div class="panel">
+      <h3 style="margin:0 0 12px;font-size:16px">Cost to charge vs cost to fuel</h3>
+      <div class="scroll"><table style="min-width:680px"><thead><tr>
+        <th class="l">Item</th><th>Model Y Premium AWD</th><th>Palisade Hyb Calligraphy</th>
+      </tr></thead><tbody id="ev-cost"></tbody></table></div>
+    </div>
+
+    <div class="panel">
+      <h3 style="margin:0 0 12px;font-size:16px">5-year total cost of ownership</h3>
+      <div class="scroll"><table style="min-width:680px"><thead><tr>
+        <th class="l">Item</th><th>Model Y Premium AWD</th><th>Palisade Hyb Calligraphy</th>
+      </tr></thead><tbody id="ev-tco"></tbody></table></div>
+      <p class="note">
+        Tesla price read off the configurator with <strong>both marketing deductions off</strong> &mdash; no
+        &ldquo;$6,600 gas savings&rdquo;, no EVAP (the $5,000 option disappears once Premium AWD is selected;
+        it only applies to the $49,990 RWD under the $50,000 cap). HST shown explicitly.
+        <br><strong>The catch:</strong> a 1,000 km leg is ~3 charging stops each way in winter, roughly 1.5 extra
+        hours per direction versus one fuel stop. Twice a year. And if you cannot charge at home overnight,
+        the whole result inverts &mdash; public charging at 55&cent;/kWh hands the win to the Palisade.
+      </p>
+    </div>
+  </section>
 </div>
 
 <script src="deals.js"></script>
@@ -539,6 +603,109 @@ $("#filters").addEventListener("click", e => {
 });
 document.querySelectorAll("input,select").forEach(el => el.addEventListener("input", render));
 render();
+
+/* ---------- EV vs Hybrid pane ---------- */
+const EVV = {
+  tesla:{name:"Model Y Premium AWD", veh:64990, fees:2646, epa:542, usable:78, dep:.17},
+  pal:  {name:"Palisade Hyb Calligraphy", veh:65699, fees:3050, l100:8.1, dep:.15}
+};
+// GTA winter: loss vs EPA, kWh/100km, how often. Pearson normals, not prairie.
+const EVRANGE=[
+  ["Summer, mixed",            .05,16,"May&ndash;Sep"],
+  ["Summer, highway 110&ndash;120",  .16,18,"May&ndash;Sep"],
+  ["Dec &amp; Mar hwy, ~0&deg;C",     .25,21,"~40% of winter"],
+  ["Jan &amp; Feb hwy, &minus;5&deg;C",     .30,23,"~50% of winter"],
+  ["GTA cold snap, &minus;15&deg;C hwy",    .38,26,"~10 days/yr"],
+  ["Rare extreme &minus;20&deg;C+ hwy",     .42,28,"a few days/decade"]
+];
+const ev$ = id => +document.getElementById(id).value;
+
+function renderEV(){
+  if (!document.getElementById("ev-range")) return;
+  const T=EVV.tesla, P=EVV.pal, hst=(+$("#hst").value)/100;
+  const rate=(ev$("ev-ulo")+ev$("ev-deliv"))*(1+hst);      // home, all-in
+  const scr=ev$("ev-sc"), gas=ev$("ev-gas");
+
+  // range table
+  document.getElementById("ev-range").innerHTML = EVRANGE.map(([n,l,k,fq])=>`<tr>
+    <td class="l">${n}</td><td>${Math.round(l*100)}%</td>
+    <td><strong>${Math.round(T.epa*(1-l))} km</strong></td><td>${k}</td>
+    <td>${Math.round(T.epa*(1-l)*.8)} km</td><td class="l meta">${fq}</td></tr>`).join("");
+
+  // driving split
+  const commute=ev$("ev-kmyr")*ev$("ev-days"), local=ev$("ev-local");
+  const homeKm=commute+local;
+  const t1=ev$("ev-t1"), t2=ev$("ev-t2");
+  const tripKm=t1*600 + t2*2000, totalKm=homeKm+tripKm;
+
+  // consumption: 4 winter months blended, 8 other
+  const wMix=.40*19+.50*21+.10*24, sMix=16.5;
+  const homeKWh=homeKm*(4/12*wMix + 8/12*sMix)/100;
+  const homeCost=homeKWh*rate;
+
+  // trips: one full home charge each, rest supercharged
+  let scK=0, hK=0, per=[];
+  [[t1,300,22],[t2,1000,25]].forEach(([c,ow,k])=>{
+    if(!c) return;
+    const rt=ow*2*k/100, fromHome=Math.min(T.usable*.9,rt), sc=Math.max(0,rt-fromHome);
+    scK+=sc*c; hK+=fromHome*c;
+    per.push([`${c} &times; ${ow} km one-way`, fromHome*rate+sc*scr,
+      `${Math.round(rt)} kWh round trip &middot; ~${Math.ceil(sc/(T.usable*.65))} charge stops`]);
+  });
+  const tripCost=scK*scr+hK*rate, evTotal=homeCost+tripCost;
+  const palL=totalKm*P.l100/100*1.12, palCost=palL*gas;
+
+  const M=n=>(n<0?"−$":"$")+Math.abs(Math.round(n)).toLocaleString("en-CA");
+  const r=(l,a,b,note,bold)=>`<tr><td class="l">${bold?"<strong>"+l+"</strong>":l}
+    ${note?'<div class="meta">'+note+'</div>':''}</td>
+    <td>${bold?"<strong>"+a+"</strong>":a}</td><td>${bold?"<strong>"+b+"</strong>":b}</td></tr>`;
+
+  document.getElementById("ev-cost").innerHTML =
+    r("Total distance", totalKm.toLocaleString()+" km", totalKm.toLocaleString()+" km",
+      `commute ${commute.toLocaleString()} + trips ${tripKm.toLocaleString()} + local ${local.toLocaleString()}`)
+  + r("Home / pump energy", M(homeCost), M(palCost*homeKm/totalKm),
+      `${Math.round(homeKWh).toLocaleString()} kWh @ ${"$"+rate.toFixed(3)}/kWh`)
+  + per.map(([n,c,d])=>r("Road trips &mdash; "+n, M(c), M(palCost*(n.includes("1000")?t2*2000:t1*600)/totalKm), d)).join("")
+  + r("ANNUAL ENERGY", M(evTotal), M(palCost),
+      `blended ${"$"+(evTotal/(homeKWh+scK+hK)).toFixed(2)}/kWh &middot; ${Math.round(scK/(homeKWh+scK+hK)*100)}% at Supercharger prices
+       &nbsp;|&nbsp; ${Math.round(palL).toLocaleString()} L`, true)
+  + r("SAVING vs Palisade", M(palCost-evTotal)+" /yr", M((palCost-evTotal)*5)+" over 5 yrs", "", true);
+
+  // 5-yr TCO
+  const YR=5, KM5=totalKm*YR;
+  const cap=c=>{const pre=c.veh+c.fees; return {pre, hst:pre*hst, all:pre*(1+hst)};};
+  const tc=cap(T), pc=cap(P);
+  const tDep=tc.all - T.veh*Math.pow(1-T.dep,YR), pDep=pc.all - P.veh*Math.pow(1-P.dep,YR);
+  const tTires=Math.max(0,Math.ceil(KM5/55000)-1)*1800, pTires=Math.max(0,Math.ceil(KM5/70000)-1)*1400;
+  const tT=tDep+evTotal*YR+400*YR+tTires+2000+99*12*YR;
+  const pT=pDep+palCost*YR+1100*YR+pTires;
+  document.getElementById("ev-tco").innerHTML =
+    r("Vehicle price", M(T.veh), M(P.veh))
+  + r("Freight / fees", M(T.fees), M(P.fees))
+  + r("HST @ "+(hst*100).toFixed(0)+"%", M(tc.hst), M(pc.hst))
+  + r("All-in at purchase", M(tc.all), M(pc.all), "", true)
+  + r("Depreciation (net of resale)", M(tDep), M(pDep), `${Math.round(T.dep*100)}% vs ${Math.round(P.dep*100)}% /yr [estimate]`)
+  + r("Energy / fuel, 5 yrs", M(evTotal*YR), M(palCost*YR))
+  + r("Maintenance", M(400*YR), M(1100*YR))
+  + r("Tires", M(tTires), M(pTires))
+  + r("Home charger", M(2000), "—")
+  + r("FSD @ $99/mo", M(99*12*YR), "—")
+  + r("5-YEAR TOTAL", M(tT), M(pT), "", true)
+  + r("Per year", M(tT/YR), M(pT/YR))
+  + r("Per km", "$"+(tT/KM5).toFixed(2), "$"+(pT/KM5).toFixed(2))
+  + r(tT<pT?"TESLA CHEAPER BY":"PALISADE CHEAPER BY", M(Math.abs(tT-pT)), M(Math.abs(tT-pT)/YR)+" /yr",
+      "without FSD the gap is "+M(Math.abs(tT-pT)+(tT<pT?99*12*YR:-99*12*YR)), true);
+}
+
+document.querySelectorAll(".tab").forEach(b=>b.addEventListener("click",()=>{
+  document.querySelectorAll(".tab").forEach(x=>x.setAttribute("aria-selected", String(x===b)));
+  document.getElementById("pane-deals").hidden = b.dataset.tab!=="deals";
+  document.getElementById("pane-ev").hidden    = b.dataset.tab!=="ev";
+  if(b.dataset.tab==="ev") renderEV();
+}));
+document.querySelectorAll("#pane-ev input").forEach(i=>i.addEventListener("input",renderEV));
+renderEV();
+
 </script>
 </body>
 </html>
