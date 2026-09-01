@@ -96,6 +96,7 @@ a.go:hover{background:var(--accent);color:var(--bg);border-color:var(--accent)}
     <button class="tab" data-tab="deals" aria-selected="true">Deals</button>
     <button class="tab" data-tab="ev" aria-selected="false">EV vs Hybrid</button>
     <button class="tab" data-tab="seven" aria-selected="false">7-Seat EV vs Hybrid</button>
+    <button class="tab" data-tab="tx" aria-selected="false">Lexus TX &mdash; Ontario</button>
   </div>
 
   <section id="pane-deals">
@@ -294,9 +295,40 @@ a.go:hover{background:var(--accent);color:var(--bg);border-color:var(--accent)}
       <p class="note" id="s7-verdict"></p>
     </div>
   </section>
+
+  <section id="pane-tx" hidden>
+    <div class="panel">
+      <div class="ctrls">
+        <div><label for="tx-km">Your km/yr</label><input type="number" id="tx-km" value="30000" step="1000" min="1000"></div>
+        <div><label for="tx-gas">Gas $/L</label><input type="number" id="tx-gas" value="1.55" step="0.05" min="0"></div>
+        <div><label for="tx-dep">Depreciation %/yr</label><input type="number" id="tx-dep" value="11" step="0.5" min="0"></div>
+      </div>
+      <div class="chips" id="tx-filters">
+        <button class="chip" data-f="500h" aria-pressed="false">Hybrid 500h only</button>
+        <button class="chip" data-f="cert" aria-pressed="false">Certified only</button>
+        <button class="chip" data-f="seven" aria-pressed="false">7-seat only</button>
+        <button class="chip" data-f="no24" aria-pressed="false">Skip 2024 (first year)</button>
+      </div>
+      <p class="note" style="margin-top:14px">
+        <strong>Ontario listings only</strong> &mdash; Quebec excluded. Every URL was fetch-verified live.
+        <strong>TX 350 is 11.5 L/100km; TX 500h is 8.6</strong> and makes 366 hp against the gas car&rsquo;s 275.
+        The <strong>550h+ PHEV is not sold in Canada yet.</strong>
+        <br><strong>Model-year risk:</strong> NHTSA complaints run <strong>2024 = 118, 2025 = 28, 2026 = 10</strong>.
+        The 2024 faults include panoramic-roof breakage and an A/C condenser design flaw.
+      </p>
+    </div>
+    <div class="panel" style="padding:0;overflow:hidden">
+      <div class="scroll"><table style="min-width:940px"><thead><tr>
+        <th class="l">#</th><th class="l">Vehicle</th><th class="l">Where</th>
+        <th>Price</th><th>km</th><th>Fuel/yr</th><th>Coverage</th><th>5-YR COST</th>
+      </tr></thead><tbody id="tx-body"></tbody></table></div>
+      <div class="empty" id="tx-empty" hidden>Nothing matches these filters.</div>
+    </div>
+  </section>
 </div>
 
 <script src="deals.js"></script>
+<script src="tx.js"></script>
 <script>
 const $ = s => document.querySelector(s);
 const money = n => (n<0?"−$":"$") + Math.abs(n).toLocaleString("en-CA",{maximumFractionDigits:0});
@@ -830,16 +862,74 @@ function renderS7(){
 
 document.querySelectorAll("#pane-seven input").forEach(i=>i.addEventListener("input",renderS7));
 
+/* ---------- Lexus TX pane (Ontario only) ---------- */
+const txState = { f:new Set() };
+function renderTX(){
+  const body=document.getElementById("tx-body"); if(!body||!window.TXCARS) return;
+  const KMYR=+document.getElementById("tx-km").value;
+  const GAS=+document.getElementById("tx-gas").value;
+  const DEP=(+document.getElementById("tx-dep").value)/100;
+  const hst=(+$("#hst").value)/100, YRS=5, KM=KMYR*YRS, NOW=2026.67;
+  const M=n=>"$"+Math.round(n).toLocaleString("en-CA");
+  const rows=window.TXCARS.filter(r=>{
+    const [y,eng,,,,,cert,,six]=r;
+    if(txState.f.has("500h") && eng!=="500h") return false;
+    if(txState.f.has("cert") && !cert) return false;
+    if(txState.f.has("seven") && six) return false;      // six-seat cars fail a 7-seat filter
+    if(txState.f.has("no24") && y===2024) return false;
+    return true;
+  }).map(r=>{
+    const [y,eng,trim,p,km,c,cert,isNew,six,d,city,url,note]=r;
+    const l = eng==="500h" ? 8.6 : 11.5;
+    const all=(p+1540)*(1+hst);
+    const fuelYr=KMYR*l/100*GAS;
+    const cover=Math.min(Math.max(0,100000-km)/KMYR, Math.max(0,(y+0.5+5)-NOW));
+    const total=all - p*Math.pow(1-DEP,YRS) + fuelYr*YRS + 700*YRS
+      + Math.max(0,Math.ceil(KM/65000)-1)*1600;
+    return {y,eng,trim,p,km,c,cert,isNew,six,d,city,url,note,l,fuelYr,cover,total};
+  }).sort((a,b)=>a.total-b.total);
+
+  document.getElementById("tx-empty").hidden = rows.length>0;
+  body.innerHTML = rows.map((r,i)=>`<tr class="row" tabindex="0">
+    <td class="l">${i+1}</td>
+    <td class="l"><div class="veh">${r.y} Lexus TX ${r.eng} ${r.trim}
+      <a class="go" href="${r.url}" target="_blank" rel="noopener" title="Open listing"
+         onclick="event.stopPropagation()">↗</a></div>
+      <div class="meta">
+        <span class="tag ${r.eng==="500h"?"q":""}">${r.eng==="500h"?"HYBRID 366hp":"GAS 275hp"}</span>
+        ${r.cert?'<span class="tag q">certified</span>':''}
+        ${r.isNew?'<span class="tag cond c-new">new</span>':''}
+        ${r.six?'<span class="tag miss">6-SEAT ONLY</span>':'<span class="tag">7-seat</span>'}
+        ${r.y===2024?'<span class="tag est">2024 first-year</span>':''}
+        ${r.c||"colour n/a"} · ${r.l} L/100km</div>
+      <div class="meta">${r.note}</div></td>
+    <td class="l">${r.city}<div class="meta">${r.d} km away</div></td>
+    <td>${M(r.p)}</td><td>${r.km.toLocaleString()}</td>
+    <td>${M(r.fuelYr)}</td>
+    <td>${r.cover.toFixed(1)} yr<div class="meta">to 100,000 km</div></td>
+    <td><strong>${M(r.total)}</strong></td></tr>`).join("");
+}
+document.getElementById("tx-filters")?.addEventListener("click",e=>{
+  const b=e.target.closest(".chip"); if(!b) return;
+  const on=b.getAttribute("aria-pressed")==="true";
+  b.setAttribute("aria-pressed",String(!on));
+  on?txState.f.delete(b.dataset.f):txState.f.add(b.dataset.f);
+  renderTX();
+});
+document.querySelectorAll("#pane-tx input").forEach(i=>i.addEventListener("input",renderTX));
+
 document.querySelectorAll(".tab").forEach(b=>b.addEventListener("click",()=>{
   document.querySelectorAll(".tab").forEach(x=>x.setAttribute("aria-selected", String(x===b)));
   document.getElementById("pane-deals").hidden = b.dataset.tab!=="deals";
   document.getElementById("pane-ev").hidden    = b.dataset.tab!=="ev";
   document.getElementById("pane-seven").hidden = b.dataset.tab!=="seven";
+  document.getElementById("pane-tx").hidden    = b.dataset.tab!=="tx";
   if(b.dataset.tab==="ev") renderEV();
   if(b.dataset.tab==="seven") renderS7();
+  if(b.dataset.tab==="tx") renderTX();
 }));
 document.querySelectorAll("#pane-ev input").forEach(i=>i.addEventListener("input",renderEV));
-renderEV(); renderS7();
+renderEV(); renderS7(); renderTX();
 
 </script>
 </body>
