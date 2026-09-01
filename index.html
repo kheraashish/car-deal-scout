@@ -99,6 +99,7 @@ a.go:hover{background:var(--accent);color:var(--bg);border-color:var(--accent)}
     <button class="tab" data-tab="tx" aria-selected="false">Lexus TX &mdash; Ontario</button>
     <button class="tab" data-tab="clutch" aria-selected="false">Clutch.ca</button>
     <button class="tab" data-tab="phev" aria-selected="false">Outlander PHEV</button>
+    <button class="tab" data-tab="palhyb" aria-selected="false">Palisade Hybrid</button>
   </div>
 
   <section id="pane-deals">
@@ -419,6 +420,51 @@ a.go:hover{background:var(--accent);color:var(--bg);border-color:var(--accent)}
     </div>
   </section>
 
+  <section id="pane-palhyb" hidden>
+    <div class="panel">
+      <div class="ctrls">
+        <div><label for="pb-km">Your km/yr</label><input type="number" id="pb-km" value="29400" step="1000" min="1000"></div>
+        <div><label for="pb-gas">Regular gas $/L</label><input type="number" id="pb-gas" value="1.50" step="0.05" min="0"></div>
+        <div><label for="pb-dep">Depreciation %/yr</label><input type="number" id="pb-dep" value="11" step="0.5" min="0"></div>
+      </div>
+      <p class="note" style="margin-top:14px">
+        <strong>It exists, it is here, and it changes the answer.</strong> The hybrid arrived with the
+        2026 redesign &mdash; there was no hybrid Palisade before it, which is why nothing on the earlier tabs
+        is one. Ontario has <strong>202 hybrid listings, 39 of them Ultimate Calligraphy</strong>, in both
+        2026 and 2027 model years.
+        <br><strong>The fuel number is the story, and I read it off a live listing, not a spec sheet:
+        8.3 L/100km city, 7.9 highway.</strong> Against the gas V6 Calligraphy at 13.4/10.0 that is a
+        <strong>32% cut</strong>. Against the Lexus TX 500h at 8.6 it is better &mdash; and it drinks
+        <strong>regular</strong> where the Lexus needs premium, so you win twice on every litre.
+        <br><strong>This is the car you described in your first message.</strong> Ultimate Calligraphy,
+        hybrid, seven seats on captain&rsquo;s chairs, dual panoramic roof, and one of them is
+        <strong>silver with 25 km</strong> &mdash; your original colour rule, satisfied, at
+        <strong>$11,019 less than the Lexus TX</strong>.
+        <br><strong>What you give up against the TX:</strong> about 0.4 years of warranty
+        (Hyundai&rsquo;s 5yr/100,000 km binds on kilometres at your mileage, and Lexus certification runs
+        to 120,000), the badge, and Lexus resale. The hybrid battery is covered 8 years / 160,000 km,
+        which outlasts everything else on this page.
+        <br><strong>Two cautions.</strong> Hybrid Calligraphys are barely discounted &mdash; only one car in
+        this set is below MSRP, at $2,000 off, against $4,250 off the Outlander. And
+        <strong>interior colour is not printed on these listings</strong>: if the brown cabin is the point,
+        confirm it car by car before you drive anywhere.
+      </p>
+    </div>
+    <div class="panel" style="padding:0;overflow:hidden">
+      <div class="scroll"><table style="min-width:900px"><thead><tr>
+        <th class="l">#</th><th class="l">Vehicle</th><th>Price</th><th>km</th>
+        <th>Fuel/yr</th><th>Warranty</th><th>5-YR COST</th>
+      </tr></thead><tbody id="pb-body"></tbody></table></div>
+    </div>
+    <div class="panel" style="padding:0;overflow:hidden;margin-top:16px">
+      <div class="scroll"><table style="min-width:860px"><thead><tr>
+        <th class="l">Head to head &mdash; best of every tab</th><th>Out the door</th><th>L/100km</th>
+        <th>Fuel or energy/yr</th><th>Warranty</th><th>5-YR COST</th>
+      </tr></thead><tbody id="pb-vs"></tbody></table></div>
+    </div>
+  </section>
+
+
 
 </div>
 
@@ -426,6 +472,7 @@ a.go:hover{background:var(--accent);color:var(--bg);border-color:var(--accent)}
 <script src="tx.js"></script>
 <script src="clutch.js"></script>
 <script src="phev.js"></script>
+<script src="palhyb.js"></script>
 <script>
 const $ = s => document.querySelector(s);
 const money = n => (n<0?"−$":"$") + Math.abs(n).toLocaleString("en-CA",{maximumFractionDigits:0});
@@ -1160,6 +1207,75 @@ document.getElementById("ph-filters")?.addEventListener("click",e=>{
 });
 document.querySelectorAll("#pane-phev input").forEach(i=>i.addEventListener("input",renderPH));
 
+
+/* ---------- Palisade Hybrid pane ---------- */
+/* 8.1 L/100km combined on REGULAR, read off a live listing (8.3 city / 7.9 hwy).
+ * Hyundai warranty 5yr/100,000km comprehensive; at ~29,400 km/yr the km cap binds first. */
+function renderPB(){
+  const body=document.getElementById("pb-body"); if(!body||!window.PALHYB) return;
+  const KMYR=+document.getElementById("pb-km").value;
+  const GAS=+document.getElementById("pb-gas").value;
+  const DEP=(+document.getElementById("pb-dep").value)/100;
+  const hst=(+$("#hst").value)/100, YRS=5, KM=KMYR*YRS, NOW=2026.67;
+  const M=n=>"$"+Math.round(n).toLocaleString("en-CA");
+  const tyres=Math.max(0,Math.ceil(KM/65000)-1)*1600;
+  const LP=8.1;
+
+  const rows=window.PALHYB.map(r=>{
+    const [y,trim,p,msrp,km,col,url,note]=r;
+    const all=(p+1540)*(1+hst);
+    const fuelYr=KMYR*LP/100*GAS;
+    const cover=Math.min(Math.max(0,100000-km)/KMYR, Math.max(0,(y+0.5+5)-NOW));
+    const total=all - p*Math.pow(1-DEP,YRS) + fuelYr*YRS + 780*YRS + tyres;
+    return {y,trim,p,msrp,km,col,url,note,fuelYr,cover,all,total};
+  }).sort((a,b)=>a.total-b.total);
+
+  body.innerHTML = rows.map((r,i)=>`<tr class="row" tabindex="0">
+    <td class="l">${i+1}</td>
+    <td class="l"><div class="veh">${r.y} Palisade Hybrid ${r.trim}
+      <a class="go" href="${r.url}" target="_blank" rel="noopener" title="Open listing"
+         onclick="event.stopPropagation()">&#8599;</a></div>
+      <div class="meta"><span class="tag q">HYBRID 8.1 L/100km</span>
+        <span class="tag q">regular fuel</span><span class="tag">7 seats</span>
+        <span class="tag">dual pano</span>
+        ${r.msrp&&r.msrp>r.p?`<span class="tag q">${M(r.msrp-r.p)} off MSRP</span>`:'<span class="tag est">at MSRP</span>'}
+        ${r.col||"colour n/a"}</div>
+      ${r.note?`<div class="meta">${r.note}</div>`:""}</td>
+    <td>${M(r.p)}<div class="meta">${M(r.all)} out the door</div></td>
+    <td>${r.km.toLocaleString()}</td>
+    <td>${M(r.fuelYr)}</td>
+    <td>${r.cover.toFixed(1)} yr</td>
+    <td><strong>${M(r.total)}</strong></td></tr>`).join("");
+
+  /* every tab's winner, same model, same dials */
+  const best=rows[0];
+  const VS=[
+    [`${best.y} Palisade Hybrid Calligraphy`, best.p, 1540, 8.1, GAS, 0.11, 780, best.cover],
+    ["2026 Outlander PHEV SEL (plug-in)", 55573, 1540, 0, 0, 0.18, 900, Math.min(100000/KMYR,5)],
+    ["2024 Palisade Calligraphy, gas (Clutch)", 47604, 249, 11.1, GAS, 0.11, 780,
+      Math.min(Math.max(0,100000-30600)/KMYR, 2.83)],
+    ["2026 Palisade Calligraphy, gas (Clutch)", 56990, 249, 11.9, GAS, 0.11, 780,
+      Math.min(Math.max(0,100000-21660)/KMYR, 3.83)],
+    ["2025 Lexus TX 500h F-Sport, certified", 77995, 1540, 8.6, 1.75, 0.11, 700,
+      Math.min(Math.max(0,120000-5770)/KMYR, 3.83)],
+    ["2025 Volvo XC90 B6 Ultra (Clutch)", 69990, 249, 10.4, 1.75, 0.11, 1248,
+      Math.min(Math.max(0,80000-22000)/KMYR, 2.83)]
+  ].map(([n,p,f,l,g,d,m,w])=>{
+    const all=(p+f)*(1+hst);
+    // the PHEV is priced on its own energy model, not L/100km
+    const e = l ? KMYR*l/100*g : phEnergy(72, +document.getElementById("ph-kmd").value,
+                                          +document.getElementById("ph-days").value,
+                                          +document.getElementById("ph-elec").value, GAS);
+    return {n,l,all,e,w,total: all - p*Math.pow(1-d,YRS) + e*YRS + m*YRS + tyres};
+  }).sort((a,b)=>a.total-b.total);
+
+  document.getElementById("pb-vs").innerHTML = VS.map(r=>`<tr class="row">
+    <td class="l"><div class="veh">${r.n}</div></td>
+    <td>${M(r.all)}</td><td>${r.l?r.l:"&mdash; plug-in"}</td><td>${M(r.e)}</td>
+    <td>${r.w.toFixed(1)} yr</td><td><strong>${M(r.total)}</strong></td></tr>`).join("");
+}
+document.querySelectorAll("#pane-palhyb input").forEach(i=>i.addEventListener("input",renderPB));
+
 document.querySelectorAll(".tab").forEach(b=>b.addEventListener("click",()=>{
   document.querySelectorAll(".tab").forEach(x=>x.setAttribute("aria-selected", String(x===b)));
   document.getElementById("pane-deals").hidden = b.dataset.tab!=="deals";
@@ -1168,14 +1284,16 @@ document.querySelectorAll(".tab").forEach(b=>b.addEventListener("click",()=>{
   document.getElementById("pane-tx").hidden    = b.dataset.tab!=="tx";
   document.getElementById("pane-clutch").hidden= b.dataset.tab!=="clutch";
   document.getElementById("pane-phev").hidden  = b.dataset.tab!=="phev";
+  document.getElementById("pane-palhyb").hidden= b.dataset.tab!=="palhyb";
   if(b.dataset.tab==="ev") renderEV();
   if(b.dataset.tab==="seven") renderS7();
   if(b.dataset.tab==="tx") renderTX();
   if(b.dataset.tab==="clutch") renderCL();
   if(b.dataset.tab==="phev") renderPH();
+  if(b.dataset.tab==="palhyb") renderPB();
 }));
 document.querySelectorAll("#pane-ev input").forEach(i=>i.addEventListener("input",renderEV));
-renderEV(); renderS7(); renderTX(); renderCL(); renderPH();
+renderEV(); renderS7(); renderTX(); renderCL(); renderPH(); renderPB();
 
 </script>
 </body>
