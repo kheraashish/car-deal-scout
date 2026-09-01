@@ -100,6 +100,7 @@ a.go:hover{background:var(--accent);color:var(--bg);border-color:var(--accent)}
     <button class="tab" data-tab="clutch" aria-selected="false">Clutch.ca</button>
     <button class="tab" data-tab="phev" aria-selected="false">Outlander PHEV</button>
     <button class="tab" data-tab="palhyb" aria-selected="false">Palisade Hybrid</button>
+    <button class="tab" data-tab="tesla" aria-selected="false">Used Model Y</button>
   </div>
 
   <section id="pane-deals">
@@ -464,6 +465,50 @@ a.go:hover{background:var(--accent);color:var(--bg);border-color:var(--accent)}
     </div>
   </section>
 
+  <section id="pane-tesla" hidden>
+    <div class="panel">
+      <div class="ctrls">
+        <div><label for="ty-km">Your km/yr</label><input type="number" id="ty-km" value="29400" step="1000" min="1000"></div>
+        <div><label for="ty-elec">Electricity $/kWh</label><input type="number" id="ty-elec" value="0.076" step="0.005" min="0"></div>
+        <div><label for="ty-dep">Depreciation %/yr</label><input type="number" id="ty-dep" value="14" step="0.5" min="0"></div>
+      </div>
+      <div class="chips" id="ty-filters">
+        <button class="chip" data-f="hw4" aria-pressed="false">HW4 only (real FSD)</button>
+        <button class="chip" data-f="seller" aria-pressed="false">Passes my seller rule</button>
+        <button class="chip" data-f="lowkm" aria-pressed="false">Under 40,000 km</button>
+      </div>
+      <p class="note" style="margin-top:14px">
+        <strong>Read the seat count first: a Model Y is a five-seater.</strong> You set a 7&ndash;8 seat rule
+        and every car on this tab breaks it. Nothing below changes that; it is here because you asked.
+        <br><strong>FSD is decided by hardware, and hardware is decided by build date.</strong> HW4/AI4 began
+        shipping around January 2023 and HW3 cars were still being built into early 2023. Tesla has
+        confirmed <strong>HW3 cars cannot run FSD v14 and can never do Unsupervised FSD</strong> &mdash; they get a
+        cut-down &ldquo;v14 Lite&rdquo; instead. <strong>2024 and newer is the only safe filter.</strong> A 2023 is a coin
+        flip you must settle by build date with Tesla before you pay.
+        <br><strong>The licence is a separate question from the hardware.</strong> Tesla ended one-time FSD
+        purchases on <strong>14 February 2026</strong> &mdash; it was C$11,000 &mdash; and it is now
+        <strong>subscription-only at C$99/month in Canada</strong>. FSD bought before that date generally rides
+        with the VIN through a private or third-party dealer sale, but Tesla routinely strips it from cars
+        it sells out of its own used inventory. <strong>Verify per car:</strong> on the touchscreen under
+        Software it should read &ldquo;Full Self-Driving Capability&rdquo;. A car that already carries it is worth
+        materially more than one where you start paying $99 a month forever.
+        <br><strong>Red is effectively unavailable.</strong> Of 196 used Model Y in 300 km of Toronto, the only
+        two red dual-motor cars run <strong>78,000 and 84,152 km</strong>. White is plentiful, blue is thin,
+        red is not a realistic constraint on this car.
+        <br><strong>Nothing here clears all your rules at once</strong> &mdash; each row names the rule it breaks.
+        Turn on all three chips above and the table empties. That is the honest result, not a bug.
+      </p>
+    </div>
+    <div class="panel" style="padding:0;overflow:hidden">
+      <div class="scroll"><table style="min-width:940px"><thead><tr>
+        <th class="l">#</th><th class="l">Vehicle</th><th class="l">Seller</th><th>Price</th><th>km</th>
+        <th>Energy/yr</th><th>5-YR COST</th>
+      </tr></thead><tbody id="ty-body"></tbody></table></div>
+      <div class="empty" id="ty-empty" hidden>Nothing matches these filters &mdash; which is the finding.</div>
+    </div>
+  </section>
+
+
 
 
 </div>
@@ -473,6 +518,7 @@ a.go:hover{background:var(--accent);color:var(--bg);border-color:var(--accent)}
 <script src="clutch.js"></script>
 <script src="phev.js"></script>
 <script src="palhyb.js"></script>
+<script src="teslay.js"></script>
 <script>
 const $ = s => document.querySelector(s);
 const money = n => (n<0?"−$":"$") + Math.abs(n).toLocaleString("en-CA",{maximumFractionDigits:0});
@@ -1276,6 +1322,65 @@ function renderPB(){
 }
 document.querySelectorAll("#pane-palhyb input").forEach(i=>i.addEventListener("input",renderPB));
 
+
+/* ---------- Used Model Y pane ---------- */
+/* 19.5 kWh/100km blended: ~18 summer, ~22.5 GTA winter (Pearson normals, the figure the
+ * EV tab already uses). Depreciation defaults to 14% - Tesla resale has fallen faster
+ * than the 11% used elsewhere on this page, and pretending otherwise flatters the car. */
+const tyState = { f:new Set() };
+function renderTY(){
+  const body=document.getElementById("ty-body"); if(!body||!window.TESLAY) return;
+  const KMYR=+document.getElementById("ty-km").value;
+  const ELEC=+document.getElementById("ty-elec").value;
+  const DEP=(+document.getElementById("ty-dep").value)/100;
+  const hst=(+$("#hst").value)/100, YRS=5, KM=KMYR*YRS;
+  const M=n=>"$"+Math.round(n).toLocaleString("en-CA");
+  const tyres=Math.max(0,Math.ceil(KM/55000)-1)*1800;   // EV weight + torque eats tyres faster
+
+  const rows=window.TESLAY.map(r=>{
+    const [y,trim,p,km,col,hw,sellerType,seller,acc,url,note]=r;
+    const fees = sellerType==="clutch" ? 249 : (sellerType==="private" ? 120 : 1540);
+    const all=(p+fees)*(1+hst);
+    const e=KMYR*0.195*ELEC;
+    // $99/mo FSD subscription is a real running cost unless the licence rides with the VIN
+    const fsd=99*12;
+    const total=all - p*Math.pow(1-DEP,YRS) + e*YRS + 400*YRS + fsd*YRS + tyres;
+    return {y,trim,p,km,col,hw,sellerType,seller,acc,url,note,e,all,total};
+  }).filter(r=>{
+    if(tyState.f.has("hw4")    && r.hw!=="HW4") return false;
+    if(tyState.f.has("seller") && !["franchise","clutch"].includes(r.sellerType)) return false;
+    if(tyState.f.has("lowkm")  && r.km>=40000) return false;
+    return true;
+  }).sort((a,b)=>a.total-b.total);
+
+  document.getElementById("ty-empty").hidden = rows.length>0;
+  body.innerHTML = rows.map((r,i)=>`<tr class="row" tabindex="0">
+    <td class="l">${i+1}</td>
+    <td class="l"><div class="veh">${r.y} Model Y ${r.trim}
+      <a class="go" href="${r.url}" target="_blank" rel="noopener" title="Open listing"
+         onclick="event.stopPropagation()">&#8599;</a></div>
+      <div class="meta">
+        <span class="tag ${r.hw==="HW4"?"q":"miss"}">${r.hw==="HW4"?"HW4 — FSD v14 ok":r.hw==="HW3"?"HW3 — NO FSD v14":"HW3/HW4 — must verify"}</span>
+        <span class="tag miss">5 seats</span>
+        <span class="tag ${r.acc==="not stated"?"miss":""}">${r.acc}</span>
+        ${r.col} &middot; dual motor</div>
+      <div class="meta">${r.note}</div></td>
+    <td class="l">${r.seller}<div class="meta">
+      <span class="tag ${["franchise","clutch"].includes(r.sellerType)?"q":"miss"}">${r.sellerType}</span></div></td>
+    <td>${M(r.p)}<div class="meta">${M(r.all)} out the door</div></td>
+    <td>${r.km.toLocaleString()}</td>
+    <td>${M(r.e)}<div class="meta">+ $1,188 FSD</div></td>
+    <td><strong>${M(r.total)}</strong></td></tr>`).join("");
+}
+document.getElementById("ty-filters")?.addEventListener("click",e=>{
+  const b=e.target.closest(".chip"); if(!b) return;
+  const on=b.getAttribute("aria-pressed")==="true";
+  b.setAttribute("aria-pressed",String(!on));
+  on?tyState.f.delete(b.dataset.f):tyState.f.add(b.dataset.f);
+  renderTY();
+});
+document.querySelectorAll("#pane-tesla input").forEach(i=>i.addEventListener("input",renderTY));
+
 document.querySelectorAll(".tab").forEach(b=>b.addEventListener("click",()=>{
   document.querySelectorAll(".tab").forEach(x=>x.setAttribute("aria-selected", String(x===b)));
   document.getElementById("pane-deals").hidden = b.dataset.tab!=="deals";
@@ -1285,15 +1390,17 @@ document.querySelectorAll(".tab").forEach(b=>b.addEventListener("click",()=>{
   document.getElementById("pane-clutch").hidden= b.dataset.tab!=="clutch";
   document.getElementById("pane-phev").hidden  = b.dataset.tab!=="phev";
   document.getElementById("pane-palhyb").hidden= b.dataset.tab!=="palhyb";
+  document.getElementById("pane-tesla").hidden = b.dataset.tab!=="tesla";
   if(b.dataset.tab==="ev") renderEV();
   if(b.dataset.tab==="seven") renderS7();
   if(b.dataset.tab==="tx") renderTX();
   if(b.dataset.tab==="clutch") renderCL();
   if(b.dataset.tab==="phev") renderPH();
   if(b.dataset.tab==="palhyb") renderPB();
+  if(b.dataset.tab==="tesla") renderTY();
 }));
 document.querySelectorAll("#pane-ev input").forEach(i=>i.addEventListener("input",renderEV));
-renderEV(); renderS7(); renderTX(); renderCL(); renderPH(); renderPB();
+renderEV(); renderS7(); renderTX(); renderCL(); renderPH(); renderPB(); renderTY();
 
 </script>
 </body>
