@@ -338,7 +338,7 @@ a.go:hover{background:var(--accent);color:var(--bg);border-color:var(--accent)}
         <button class="chip" data-f="prem" aria-pressed="true">Premium trim only</button>
         <button class="chip" data-f="pano" aria-pressed="true">Panoramic roof only</button>
         <button class="chip" data-f="seven" aria-pressed="true">7&ndash;8 seats only</button>
-        <button class="chip" data-f="warr" aria-pressed="false">Warranty left &gt; 2 yr</button>
+        <button class="chip" data-f="warr" aria-pressed="true">Warranty left &gt; 2 yr</button>
       </div>
       <p class="note" style="margin-top:14px">
         <strong>Clutch has no Lexus TX and no Genesis GV80 &mdash; zero, not few.</strong> Searched by model:
@@ -966,7 +966,9 @@ document.querySelectorAll("#pane-tx input").forEach(i=>i.addEventListener("input
 /* Warranty: Hyundai 5yr/100,000km comprehensive, Volvo 4yr/80,000km. Both bind on
  * whichever clock is reached first - at 30,000 km/yr the km cap almost always wins. */
 const CLW = { Palisade:[5,100000,780], XC90:[4,80000,1248] };  // [yrs, km, maint$/yr]
-const clState = { f:new Set(["prem","pano","seven"]) };
+const clState = { f:new Set(["prem","pano","seven","warr"]) };
+/* "warr" defaults ON: without it the cheap-depreciation term ranks an out-of-warranty
+ * 2018 XC90 first, which reads as a recommendation. Sort order must not impersonate judgement. */
 function renderCL(){
   const body=document.getElementById("cl-body"); if(!body||!window.CLUTCH) return;
   const KMYR=+document.getElementById("cl-km").value;
