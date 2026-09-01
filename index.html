@@ -97,6 +97,7 @@ a.go:hover{background:var(--accent);color:var(--bg);border-color:var(--accent)}
     <button class="tab" data-tab="ev" aria-selected="false">EV vs Hybrid</button>
     <button class="tab" data-tab="seven" aria-selected="false">7-Seat EV vs Hybrid</button>
     <button class="tab" data-tab="tx" aria-selected="false">Lexus TX &mdash; Ontario</button>
+    <button class="tab" data-tab="clutch" aria-selected="false">Clutch.ca</button>
   </div>
 
   <section id="pane-deals">
@@ -325,10 +326,52 @@ a.go:hover{background:var(--accent);color:var(--bg);border-color:var(--accent)}
       <div class="empty" id="tx-empty" hidden>Nothing matches these filters.</div>
     </div>
   </section>
+
+  <section id="pane-clutch" hidden>
+    <div class="panel">
+      <div class="ctrls">
+        <div><label for="cl-km">Your km/yr</label><input type="number" id="cl-km" value="30000" step="1000" min="1000"></div>
+        <div><label for="cl-gas">Gas $/L</label><input type="number" id="cl-gas" value="1.50" step="0.05" min="0"></div>
+        <div><label for="cl-dep">Depreciation %/yr</label><input type="number" id="cl-dep" value="11" step="0.5" min="0"></div>
+      </div>
+      <div class="chips" id="cl-filters">
+        <button class="chip" data-f="prem" aria-pressed="true">Premium trim only</button>
+        <button class="chip" data-f="pano" aria-pressed="true">Panoramic roof only</button>
+        <button class="chip" data-f="seven" aria-pressed="true">7&ndash;8 seats only</button>
+        <button class="chip" data-f="warr" aria-pressed="false">Warranty left &gt; 2 yr</button>
+      </div>
+      <p class="note" style="margin-top:14px">
+        <strong>Clutch has no Lexus TX and no Genesis GV80 &mdash; zero, not few.</strong> Searched by model:
+        both return 0 results. Their Lexus stock is NX/RX/ES/IS/LS/RC/UX only; their Genesis stock is
+        G70/GV70/G80 only. So for the two cars at the top of your list, Clutch is genuinely empty.
+        <br><strong>Where Clutch does add:</strong> 17 Palisades (13 of them Calligraphy) and 5 XC90s.
+        <br><strong>The Clutch price advantage is real and it sits in the fees.</strong> The price includes
+        the OMVIC fee and there are <strong>no doc, admin, or add-on fees</strong> &mdash; so last-mile cost is
+        price + HST + ~$120 licensing + $129 delivery (or free pickup 5&nbsp;km from M3A). Against a franchise
+        store&rsquo;s typical $1,540 of fees that is <strong>about $1,290 saved</strong> before any negotiation.
+        There is a 10-day / 750&nbsp;km money-back return.
+        <br><strong>What you give up:</strong> Clutch is not a franchise dealer, so <strong>no manufacturer
+        CPO warranty extension</strong> &mdash; you get the balance of factory cover and nothing more. On the
+        Lexus that extension is worth roughly 1.3 extra years at your mileage. Clutch financing is also
+        typically un-subvented, so a captive-finance rate from Hyundai or Volvo may beat it.
+        <br>Colour is not shown on Clutch listing cards and is not recorded here &mdash; you relaxed the
+        colour rule for a used deal, so it is not a filter. Confirm on the walkaround.
+      </p>
+    </div>
+    <div class="panel" style="padding:0;overflow:hidden">
+      <div class="scroll"><table style="min-width:940px"><thead><tr>
+        <th class="l">#</th><th class="l">Vehicle</th><th>Price</th><th>km</th>
+        <th>Fuel/yr</th><th>Warranty left</th><th>5-YR COST</th>
+      </tr></thead><tbody id="cl-body"></tbody></table></div>
+      <div class="empty" id="cl-empty" hidden>Nothing matches these filters.</div>
+    </div>
+  </section>
+
 </div>
 
 <script src="deals.js"></script>
 <script src="tx.js"></script>
+<script src="clutch.js"></script>
 <script>
 const $ = s => document.querySelector(s);
 const money = n => (n<0?"−$":"$") + Math.abs(n).toLocaleString("en-CA",{maximumFractionDigits:0});
@@ -918,18 +961,81 @@ document.getElementById("tx-filters")?.addEventListener("click",e=>{
 });
 document.querySelectorAll("#pane-tx input").forEach(i=>i.addEventListener("input",renderTX));
 
+
+/* ---------- Clutch.ca pane ---------- */
+/* Warranty: Hyundai 5yr/100,000km comprehensive, Volvo 4yr/80,000km. Both bind on
+ * whichever clock is reached first - at 30,000 km/yr the km cap almost always wins. */
+const CLW = { Palisade:[5,100000,780], XC90:[4,80000,1248] };  // [yrs, km, maint$/yr]
+const clState = { f:new Set(["prem","pano","seven"]) };
+function renderCL(){
+  const body=document.getElementById("cl-body"); if(!body||!window.CLUTCH) return;
+  const KMYR=+document.getElementById("cl-km").value;
+  const GAS=+document.getElementById("cl-gas").value;
+  const DEP=(+document.getElementById("cl-dep").value)/100;
+  const hst=(+$("#hst").value)/100, YRS=5, KM=KMYR*YRS, NOW=2026.67;
+  const M=n=>"$"+Math.round(n).toLocaleString("en-CA");
+  const rows=window.CLUTCH.map(r=>{
+    const [y,model,trim,p,km,bw,l,prem,seats,pano,id,v,note]=r;
+    const [wYr,wKm,maint]=CLW[model];
+    // in-service ~ mid model year; coverage ends at whichever clock runs out first
+    const byKm=Math.max(0,wKm-km)/KMYR, byDate=Math.max(0,(y+0.5+wYr)-NOW);
+    const cover=Math.min(byKm,byDate), binds=byKm<=byDate?"km":"time";
+    const fees=129+120;                       // delivery + licensing. No doc/admin fee.
+    const all=(p+fees)*(1+hst);
+    const fuelYr=KMYR*l/100*GAS;
+    const total=all - p*Math.pow(1-DEP,YRS) + fuelYr*YRS + maint*YRS
+      + Math.max(0,Math.ceil(KM/65000)-1)*1600;
+    return {y,model,trim,p,km,l,prem,seats,pano,id,v,note,fuelYr,cover,binds,all,total};
+  }).filter(r=>{
+    if(clState.f.has("prem")  && !r.prem)      return false;
+    if(clState.f.has("pano")  && !r.pano)      return false;
+    if(clState.f.has("seven") && r.seats<7)    return false;
+    if(clState.f.has("warr")  && r.cover<=2)   return false;
+    return true;
+  }).sort((a,b)=>a.total-b.total);
+
+  document.getElementById("cl-empty").hidden = rows.length>0;
+  body.innerHTML = rows.map((r,i)=>`<tr class="row" tabindex="0">
+    <td class="l">${i+1}</td>
+    <td class="l"><div class="veh">${r.y} ${r.model==="XC90"?"Volvo XC90":"Hyundai Palisade"} ${r.trim}
+      <a class="go" href="https://www.clutch.ca/vehicles/${r.id}" target="_blank" rel="noopener"
+         title="Open listing" onclick="event.stopPropagation()">&#8599;</a></div>
+      <div class="meta">
+        ${r.v?'<span class="tag q">detail page read</span>':'<span class="tag est">card data</span>'}
+        ${r.prem?'<span class="tag q">premium trim</span>':'<span class="tag miss">not premium</span>'}
+        ${r.pano?'<span class="tag">pano</span>':'<span class="tag miss">NO PANO</span>'}
+        <span class="tag ${r.seats<7?"miss":""}">${r.seats} seats</span>
+        ${r.l} L/100km</div>
+      ${r.note?`<div class="meta">${r.note}</div>`:""}</td>
+    <td>${M(r.p)}<div class="meta">${M(r.all)} out the door</div></td>
+    <td>${r.km.toLocaleString()}</td>
+    <td>${M(r.fuelYr)}</td>
+    <td>${r.cover.toFixed(1)} yr<div class="meta">${r.binds} cap binds</div></td>
+    <td><strong>${M(r.total)}</strong></td></tr>`).join("");
+}
+document.getElementById("cl-filters")?.addEventListener("click",e=>{
+  const b=e.target.closest(".chip"); if(!b) return;
+  const on=b.getAttribute("aria-pressed")==="true";
+  b.setAttribute("aria-pressed",String(!on));
+  on?clState.f.delete(b.dataset.f):clState.f.add(b.dataset.f);
+  renderCL();
+});
+document.querySelectorAll("#pane-clutch input").forEach(i=>i.addEventListener("input",renderCL));
+
 document.querySelectorAll(".tab").forEach(b=>b.addEventListener("click",()=>{
   document.querySelectorAll(".tab").forEach(x=>x.setAttribute("aria-selected", String(x===b)));
   document.getElementById("pane-deals").hidden = b.dataset.tab!=="deals";
   document.getElementById("pane-ev").hidden    = b.dataset.tab!=="ev";
   document.getElementById("pane-seven").hidden = b.dataset.tab!=="seven";
   document.getElementById("pane-tx").hidden    = b.dataset.tab!=="tx";
+  document.getElementById("pane-clutch").hidden= b.dataset.tab!=="clutch";
   if(b.dataset.tab==="ev") renderEV();
   if(b.dataset.tab==="seven") renderS7();
   if(b.dataset.tab==="tx") renderTX();
+  if(b.dataset.tab==="clutch") renderCL();
 }));
 document.querySelectorAll("#pane-ev input").forEach(i=>i.addEventListener("input",renderEV));
-renderEV(); renderS7(); renderTX();
+renderEV(); renderS7(); renderTX(); renderCL();
 
 </script>
 </body>
