@@ -98,6 +98,7 @@ a.go:hover{background:var(--accent);color:var(--bg);border-color:var(--accent)}
     <button class="tab" data-tab="seven" aria-selected="false">7-Seat EV vs Hybrid</button>
     <button class="tab" data-tab="tx" aria-selected="false">Lexus TX &mdash; Ontario</button>
     <button class="tab" data-tab="clutch" aria-selected="false">Clutch.ca</button>
+    <button class="tab" data-tab="phev" aria-selected="false">Outlander PHEV</button>
   </div>
 
   <section id="pane-deals">
@@ -367,11 +368,64 @@ a.go:hover{background:var(--accent);color:var(--bg);border-color:var(--accent)}
     </div>
   </section>
 
+  <section id="pane-phev" hidden>
+    <div class="panel">
+      <div class="ctrls">
+        <div><label for="ph-kmd">Commute km/day</label><input type="number" id="ph-kmd" value="120" step="10" min="10"></div>
+        <div><label for="ph-days">Driving days/yr</label><input type="number" id="ph-days" value="245" step="5" min="50"></div>
+        <div><label for="ph-elec">Electricity $/kWh</label><input type="number" id="ph-elec" value="0.076" step="0.005" min="0"></div>
+        <div><label for="ph-gas">Gas $/L</label><input type="number" id="ph-gas" value="1.50" step="0.05" min="0"></div>
+        <div><label for="ph-dep">Mitsubishi depreciation %/yr</label><input type="number" id="ph-dep" value="18" step="1" min="0"></div>
+      </div>
+      <div class="chips" id="ph-filters">
+        <button class="chip" data-f="work" aria-pressed="false">I can charge at work too</button>
+      </div>
+      <p class="note" style="margin-top:14px">
+        <strong>Two corrections to the premise first.</strong> There is <strong>no conventional-hybrid
+        Outlander</strong> &mdash; only the PHEV is electrified, so there is no hybrid-vs-PHEV choice to make.
+        And Mitsubishi advertises only a <strong>black semi-aniline interior</strong> on the 2026 PHEV;
+        the brown cabin you liked is the Palisade Calligraphy&rsquo;s, not this car&rsquo;s.
+        <br><strong>What is true: the discount is real and it is on the sticker.</strong> AutoTrader prints
+        MSRP on these cards, so this is not inferred &mdash; <strong>$4,250 off</strong> on the GT and SEL,
+        $3,500 on the NOIR. That is 6.7% off a brand-new car with 1&ndash;29 km on it.
+        <br><strong>The warranty is the best in this entire search, and it is not close.</strong>
+        Mitsubishi Canada: <strong>10 years / 160,000 km powertrain</strong> and 5 years / 100,000 km
+        comprehensive, verified on the manufacturer site. At your 29,400 km/yr that is
+        <strong>5.4 years of powertrain cover</strong>, against 3.8 on the certified Lexus, 2.3 on a used
+        Palisade and 1.9 on the XC90. You have been losing this fight on every other car in the search.
+        <br><strong>Your commute is what makes it work.</strong> 72 km of EV range against 120 km a day
+        means the battery covers the first 60% on a home charge, and the winter derate is modelled
+        (30% loss, Dec&ndash;Mar). Charge at work as well and it is close to an EV that never has range anxiety
+        on your two 1,000 km trips.
+        <br><strong>The counter-argument is resale, and it does not win.</strong> Mitsubishi retention is
+        the weakest of any brand here &mdash; that is why the depreciation dial defaults to a punishing 18%.
+        The Outlander would have to shed <strong>32% a year</strong>, losing 86% of its value in five years,
+        before it costs as much to own as the Lexus TX. That is not a plausible number.
+        <br>Every dealer here is a franchise Mitsubishi store. All eight cars are new, so accident history
+        is not a question. Panoramic roof is standard from SE up.
+      </p>
+    </div>
+    <div class="panel" style="padding:0;overflow:hidden">
+      <div class="scroll"><table style="min-width:900px"><thead><tr>
+        <th class="l">#</th><th class="l">Vehicle</th><th>Price</th><th>MSRP</th>
+        <th>Off</th><th>Energy/yr</th><th>5-YR COST</th>
+      </tr></thead><tbody id="ph-body"></tbody></table></div>
+    </div>
+    <div class="panel" style="padding:0;overflow:hidden;margin-top:16px">
+      <div class="scroll"><table style="min-width:820px"><thead><tr>
+        <th class="l">Head to head &mdash; best of each</th><th>Out the door</th><th>Energy/yr</th>
+        <th>Warranty left</th><th>5-YR COST</th>
+      </tr></thead><tbody id="ph-vs"></tbody></table></div>
+    </div>
+  </section>
+
+
 </div>
 
 <script src="deals.js"></script>
 <script src="tx.js"></script>
 <script src="clutch.js"></script>
+<script src="phev.js"></script>
 <script>
 const $ = s => document.querySelector(s);
 const money = n => (n<0?"−$":"$") + Math.abs(n).toLocaleString("en-CA",{maximumFractionDigits:0});
@@ -1024,6 +1078,88 @@ document.getElementById("cl-filters")?.addEventListener("click",e=>{
 });
 document.querySelectorAll("#pane-clutch input").forEach(i=>i.addEventListener("input",renderCL));
 
+
+/* ---------- Outlander PHEV pane ---------- */
+/* Energy model: the battery covers the first evRange km of each day, the rest burns gas at
+ * 7.9 L/100km. Winter (Dec-Mar) derates EV range 30% — the Toronto Pearson figure already
+ * used in the EV tab, not a Prairie number. */
+const phState = { f:new Set() };
+function phEnergy(evRange, kmd, days, elec, gas){
+  let c = 0;
+  for(let m=0;m<12;m++){
+    const derate = (m<3 || m===11) ? 0.7 : 1;
+    const ev = Math.min(kmd, evRange*derate);
+    c += (days/12) * (ev*0.28*elec + (kmd-ev)*0.079*gas);
+  }
+  return c;
+}
+function renderPH(){
+  const body=document.getElementById("ph-body"); if(!body||!window.PHEV) return;
+  const kmd=+document.getElementById("ph-kmd").value;
+  const days=+document.getElementById("ph-days").value;
+  const elec=+document.getElementById("ph-elec").value;
+  const gas=+document.getElementById("ph-gas").value;
+  const mdep=(+document.getElementById("ph-dep").value)/100;
+  const hst=(+$("#hst").value)/100, YRS=5, KMYR=kmd*days, KM=KMYR*YRS;
+  const M=n=>"$"+Math.round(n).toLocaleString("en-CA");
+  const evRange = phState.f.has("work") ? 144 : 72;   // a second charge doubles the daily EV budget
+  const tyres = Math.max(0, Math.ceil(KM/65000)-1) * 1600;
+
+  const rows=window.PHEV.map(r=>{
+    const [trim,p,msrp,col,seats,pano,url,note]=r;
+    const all=(p+1540)*(1+hst);
+    const e=phEnergy(evRange,kmd,days,elec,gas);
+    const total=all - p*Math.pow(1-mdep,YRS) + e*YRS + 900*YRS + tyres;
+    return {trim,p,msrp,col,seats,pano,url,note,e,total};
+  }).sort((a,b)=>a.total-b.total);
+
+  body.innerHTML = rows.map((r,i)=>`<tr class="row" tabindex="0">
+    <td class="l">${i+1}</td>
+    <td class="l"><div class="veh">2026 Outlander PHEV ${r.trim}
+      <a class="go" href="${r.url}" target="_blank" rel="noopener" title="Open listing"
+         onclick="event.stopPropagation()">&#8599;</a></div>
+      <div class="meta"><span class="tag q">new</span><span class="tag q">10yr/160,000km powertrain</span>
+        <span class="tag">${r.seats} seats</span>${r.pano?'<span class="tag">pano</span>':''}
+        ${r.col} &middot; 72 km EV range</div>
+      <div class="meta">${r.note}</div></td>
+    <td>${M(r.p)}</td><td>${M(r.msrp)}</td>
+    <td><strong>${M(r.msrp-r.p)}</strong></td>
+    <td>${M(r.e)}</td>
+    <td><strong>${M(r.total)}</strong></td></tr>`).join("");
+
+  /* head-to-head against the best car found on every other tab */
+  const best=rows[0];
+  const VS=[
+    [`2026 Outlander PHEV ${best.trim}`, best.p, 1540, best.e, mdep, 900,
+      Math.min(160000/KMYR, 10), "phev"],
+    ["2024 Palisade Calligraphy (Clutch)", 47604, 249, KMYR*0.111*gas, 0.11, 780,
+      Math.min(Math.max(0,100000-30600)/KMYR, 2.83), ""],
+    ["2026 Palisade Calligraphy (Clutch)", 56990, 249, KMYR*0.119*gas, 0.11, 780,
+      Math.min(Math.max(0,100000-21660)/KMYR, 3.83), ""],
+    ["2025 Lexus TX 500h F-Sport, certified", 77995, 1540, KMYR*0.086*1.75, 0.11, 700,
+      Math.min(Math.max(0,120000-5770)/KMYR, 3.83), ""],
+    ["2025 Volvo XC90 B6 Ultra (Clutch)", 69990, 249, KMYR*0.104*1.75, 0.11, 1248,
+      Math.min(Math.max(0,80000-22000)/KMYR, 2.83), ""]
+  ].map(([n,p,f,e,d,m,w,k])=>{
+    const all=(p+f)*(1+hst);
+    return {n,k,all,e,w,total: all - p*Math.pow(1-d,YRS) + e*YRS + m*YRS + tyres};
+  }).sort((a,b)=>a.total-b.total);
+
+  document.getElementById("ph-vs").innerHTML = VS.map(r=>`<tr class="row">
+    <td class="l"><div class="veh">${r.n}</div></td>
+    <td>${M(r.all)}</td><td>${M(r.e)}</td>
+    <td>${r.w.toFixed(1)} yr</td>
+    <td><strong>${M(r.total)}</strong></td></tr>`).join("");
+}
+document.getElementById("ph-filters")?.addEventListener("click",e=>{
+  const b=e.target.closest(".chip"); if(!b) return;
+  const on=b.getAttribute("aria-pressed")==="true";
+  b.setAttribute("aria-pressed",String(!on));
+  on?phState.f.delete(b.dataset.f):phState.f.add(b.dataset.f);
+  renderPH();
+});
+document.querySelectorAll("#pane-phev input").forEach(i=>i.addEventListener("input",renderPH));
+
 document.querySelectorAll(".tab").forEach(b=>b.addEventListener("click",()=>{
   document.querySelectorAll(".tab").forEach(x=>x.setAttribute("aria-selected", String(x===b)));
   document.getElementById("pane-deals").hidden = b.dataset.tab!=="deals";
@@ -1031,13 +1167,15 @@ document.querySelectorAll(".tab").forEach(b=>b.addEventListener("click",()=>{
   document.getElementById("pane-seven").hidden = b.dataset.tab!=="seven";
   document.getElementById("pane-tx").hidden    = b.dataset.tab!=="tx";
   document.getElementById("pane-clutch").hidden= b.dataset.tab!=="clutch";
+  document.getElementById("pane-phev").hidden  = b.dataset.tab!=="phev";
   if(b.dataset.tab==="ev") renderEV();
   if(b.dataset.tab==="seven") renderS7();
   if(b.dataset.tab==="tx") renderTX();
   if(b.dataset.tab==="clutch") renderCL();
+  if(b.dataset.tab==="phev") renderPH();
 }));
 document.querySelectorAll("#pane-ev input").forEach(i=>i.addEventListener("input",renderEV));
-renderEV(); renderS7(); renderTX(); renderCL();
+renderEV(); renderS7(); renderTX(); renderCL(); renderPH();
 
 </script>
 </body>
