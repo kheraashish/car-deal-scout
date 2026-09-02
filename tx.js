@@ -11,6 +11,13 @@
  * more than a low odometer buys. A CPO 2024 with 25,000 km out-covers an uncertified
  * 2026 with 11 km. That inversion picks the car.
  *
+ * PACKAGE LADDER, from Lexus Canada's own Build & Price (2026 TX 350 base $73,256.92):
+ *   Luxury +$0 (the BASE package) · Ultra Luxury +$2,753 · Executive 7-Pass +$11,006
+ *   F SPORT 3 +$11,629 · Executive 6-Pass +$11,756
+ * So Luxury -> Ultra Luxury is only $2,753. Package is NOT the reason to pick one of
+ * these cars; price and warranty are. The base TX 350 already includes the panoramic
+ * roof, 20" alloys, front ventilated + front/rear heated seats, POWER-FOLDING 3rd row,
+ * wireless CarPlay and the 14" screen.
  * Fuel: TX 350 = 11.5 L/100km, TX 500h = 8.6. Both take PREMIUM.
  * [y, engine, trim, price, km, colour, certified, isNew, sixSeat, distKm, city, url, note] */
 window.TXCARS = [
@@ -35,6 +42,13 @@ window.TXCARS = [
  [2024,"350","Luxury",58888,49344,"grey",0,0,0,25,"Ontario Lexus dealer",
   "https://www.autotrader.ca/offers/lexus-tx-tx-350-luxury-gasoline-grey-cat_ma43gr202144mt12047tr478970-8a14d8cf-85d1-4d23-8dfd-584d40a35810",
   "THE TRAP. Cheapest TX in Ontario and it is not a deal: uncertified at 49,344 km against an 80,000 km cap leaves ~12 months of warranty. You save $8,012 and buy a car that goes uncovered next autumn."],
+
+ [2025,"350","Ultra Luxury 7-Pass",63800,66623,"white",1,0,0,25,"Ontario Lexus dealer",
+  "https://www.autotrader.ca/offers/lexus-tx-ultra-luxury-7-passenger-gasoline-white-cat_ma43gr202144mt12047-2207ea80-52b1-4aeb-bb9f-440bb01137b3",
+  "THE ~$64K 2025 — check the odometer before the badge. Certified and top package, but 66,623 km against the 120,000 km CPO cap leaves only 1.82 yr. Cheap-looking and short-covered, same trap as the $58,888."],
+ [2025,"350","Luxury + cooled seats",66666,31981,"black",1,0,0,25,"Ontario Lexus dealer",
+  "https://www.autotrader.ca/offers/lexus-tx-luxury-package-cooling-seats-gasoline-black-cat_ma43gr202144mt12047-af460857-ec71-425e-8e6d-ea67b9fbc1d8",
+  "Certified 2025, 2.99 yr of cover. Luxury is the BASE package but only $2,753 below Ultra when new — the grey Ultra at $66,900 is $234 more for a higher package and 0.42 yr more cover."],
  /* ---------- hybrid 500h, used ---------- */
  [2025,"500h","F Sport",74990,27710,"silver",1,0,0,25,"Ontario Lexus dealer",
   "https://www.autotrader.ca/offers/lexus-tx-500h-f-sport-3-like-new-gas-electric-hybrid-silver-cat_ma43gr202144mt12048-16aa8d2f-83e0-400e-9ef6-c27f55d19ee6",
