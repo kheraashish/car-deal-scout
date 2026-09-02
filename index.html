@@ -313,12 +313,13 @@ a.go:hover{background:var(--accent);color:var(--bg);border-color:var(--accent)}
         <button class="chip" data-f="cert" aria-pressed="false">Certified only</button>
         <button class="chip" data-f="seven" aria-pressed="false">7-seat only</button>
         <button class="chip" data-f="no24" aria-pressed="false">Skip 2024 (first year)</button>
+        <button class="chip" data-f="used" aria-pressed="false">Used only (skip new)</button>
       </div>
       <p class="note" style="margin-top:14px">
         <strong>Ontario listings only</strong> &mdash; Quebec excluded. Every URL was fetch-verified live.
         <strong>TX 350 is 11.5 L/100km; TX 500h is 8.6</strong> and makes 366 hp against the gas car&rsquo;s 275.
         The <strong>550h+ PHEV is not sold in Canada yet.</strong>
-        <br><strong>Model-year risk:</strong> NHTSA complaints run <strong>2024 = 118, 2025 = 28, 2026 = 10</strong>.
+        <br><strong>Certification beats a low odometer, and it is not close.</strong> Lexus basic cover is 4&nbsp;yr / 80,000&nbsp;km; <strong>Lexus Certified is 6&nbsp;yr / 120,000&nbsp;km</strong>. At your 29,400&nbsp;km/yr the kilometre cap always binds, so CPO is worth <strong>1.36 extra years</strong> — more than any odometer reading can buy. A certified 2024 with 25,022&nbsp;km covers you <strong>longer</strong> than an uncertified 2026 with 11&nbsp;km. (This table previously used a 100,000&nbsp;km cap, which is Genesis&rsquo;s figure — it overstated every uncertified car and is now fixed.)<br><strong>New stock is 48 gas to 2 hybrid province-wide.</strong> The two new 500h in Ontario are $90,225 and $93,704. Buying a used hybrid is not the compromise — it is the only way to get one without joining an allocation queue.<br><strong>Model-year risk:</strong> NHTSA complaints run <strong>2024 = 118, 2025 = 28, 2026 = 10</strong>.
         The 2024 faults include panoramic-roof breakage and an A/C condenser design flaw.
       </p>
     </div>
@@ -1114,13 +1115,17 @@ function renderTX(){
     if(txState.f.has("cert") && !cert) return false;
     if(txState.f.has("seven") && six) return false;      // six-seat cars fail a 7-seat filter
     if(txState.f.has("no24") && y===2024) return false;
+    if(txState.f.has("used") && r[7]) return false;   // r[7] = isNew
     return true;
   }).map(r=>{
     const [y,eng,trim,p,km,c,cert,isNew,six,d,city,url,note]=r;
     const l = eng==="500h" ? 8.6 : 11.5;
     const all=(p+1540)*(1+hst);
     const fuelYr=KMYR*l/100*GAS;
-    const cover=Math.min(Math.max(0,100000-km)/KMYR, Math.max(0,(y+0.5+5)-NOW));
+    /* Lexus basic 4yr/80,000km; Lexus Certified 6yr/120,000km. The 100,000 km cap
+     * previously here was GENESIS's number and overstated every uncertified car. */
+    const cap = cert ? 120000 : 80000, wyr = cert ? 6 : 4;
+    const cover=Math.min(Math.max(0,cap-km)/KMYR, Math.max(0,(y+0.5+wyr)-NOW));
     const total=all - p*Math.pow(1-DEP,YRS) + fuelYr*YRS + 700*YRS
       + Math.max(0,Math.ceil(KM/65000)-1)*1600;
     return {y,eng,trim,p,km,c,cert,isNew,six,d,city,url,note,l,fuelYr,cover,total};
