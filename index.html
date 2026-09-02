@@ -326,7 +326,7 @@ a.go:hover{background:var(--accent);color:var(--bg);border-color:var(--accent)}
     <div class="panel" style="padding:0;overflow:hidden">
       <div class="scroll"><table style="min-width:940px"><thead><tr>
         <th class="l">#</th><th class="l">Vehicle</th><th class="l">Where</th>
-        <th>Price</th><th>km</th><th>Fuel/yr</th><th>Coverage</th><th>5-YR COST</th>
+        <th>Price</th><th>km</th><th>Fuel/yr</th><th>Coverage</th><th>$/yr covered</th><th>5-YR COST</th>
       </tr></thead><tbody id="tx-body"></tbody></table></div>
       <div class="empty" id="tx-empty" hidden>Nothing matches these filters.</div>
     </div>
@@ -1128,8 +1128,12 @@ function renderTX(){
     const cover=Math.min(Math.max(0,cap-km)/KMYR, Math.max(0,(y+0.5+wyr)-NOW));
     const total=all - p*Math.pow(1-DEP,YRS) + fuelYr*YRS + 700*YRS
       + Math.max(0,Math.ceil(KM/65000)-1)*1600;
-    return {y,eng,trim,p,km,c,cert,isNew,six,d,city,url,note,l,fuelYr,cover,total};
-  }).sort((a,b)=>a.total-b.total);
+    const perYr = cover>0.05 ? total/cover : Infinity;   // 5-yr cost per year of cover
+    return {y,eng,trim,p,km,c,cert,isNew,six,d,city,url,note,l,fuelYr,cover,total,perYr};
+  /* Rank by COST PER YEAR OF COVERAGE. Sorting on raw 5-yr cost put the $58,888 car —
+   * 49,344 km, uncertified, ~12 months of warranty left — at #1, which reads as a
+   * recommendation. Sort order must not impersonate judgement. */
+  }).sort((a,b)=>a.perYr-b.perYr);
 
   document.getElementById("tx-empty").hidden = rows.length>0;
   body.innerHTML = rows.map((r,i)=>`<tr class="row" tabindex="0">
@@ -1148,7 +1152,8 @@ function renderTX(){
     <td class="l">${r.city}<div class="meta">${r.d} km away</div></td>
     <td>${M(r.p)}</td><td>${r.km.toLocaleString()}</td>
     <td>${M(r.fuelYr)}</td>
-    <td>${r.cover.toFixed(1)} yr<div class="meta">to 100,000 km</div></td>
+    <td>${r.cover.toFixed(2)} yr<div class="meta">to ${r.cert?"120,000":"80,000"} km</div></td>
+    <td>${isFinite(r.perYr)?M(r.perYr):"&mdash;"}</td>
     <td><strong>${M(r.total)}</strong></td></tr>`).join("");
 }
 document.getElementById("tx-filters")?.addEventListener("click",e=>{
