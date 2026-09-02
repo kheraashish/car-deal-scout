@@ -101,6 +101,7 @@ a.go:hover{background:var(--accent);color:var(--bg);border-color:var(--accent)}
     <button class="tab" data-tab="phev" aria-selected="false">Outlander PHEV</button>
     <button class="tab" data-tab="palhyb" aria-selected="false">Palisade Hybrid</button>
     <button class="tab" data-tab="tesla" aria-selected="false">Used Model Y</button>
+    <button class="tab" data-tab="gv80" aria-selected="false">GV80 warranty</button>
   </div>
 
   <section id="pane-deals">
@@ -508,6 +509,50 @@ a.go:hover{background:var(--accent);color:var(--bg);border-color:var(--accent)}
     </div>
   </section>
 
+  <section id="pane-gv80" hidden>
+    <div class="panel">
+      <div class="ctrls">
+        <div><label for="gv-km">Your km/yr</label><input type="number" id="gv-km" value="29400" step="1000" min="1000"></div>
+        <div><label for="gv-gas">Premium gas $/L</label><input type="number" id="gv-gas" value="1.75" step="0.05" min="0"></div>
+        <div><label for="gv-epp">Genesis Extended Protection $</label><input type="number" id="gv-epp" value="3000" step="250" min="0"></div>
+      </div>
+      <div class="chips" id="gv-filters">
+        <button class="chip" data-f="seven" aria-pressed="true">7 seats only</button>
+        <button class="chip" data-f="franchise" aria-pressed="false">Franchise seller only</button>
+        <button class="chip" data-f="noflag" aria-pressed="false">Hide the flagged cars</button>
+      </div>
+      <p class="note" style="margin-top:14px">
+        <strong>Four years of warranty is not purchasable.</strong> Genesis is 5 years / 100,000&nbsp;km,
+        whichever comes first, and at your mileage the kilometre clock always wins. A
+        <strong>brand-new</strong> GV80 gives you <strong>3.40 years</strong>, and that is the ceiling.
+        Every <strong>2,450&nbsp;km</strong> a previous owner drove costs you one month.
+        <br>For a normal 15,000&nbsp;km/yr driver the time clock binds and used mileage is nearly free.
+        For you it is inverted: <strong>mileage IS the warranty</strong>, so the usual advice about
+        buying a two-year-old car does not transfer.
+        <br><strong>And here is the trap in your own question.</strong> Going from the $59,888 car
+        (2.02&nbsp;yr) to the $87,995 car (3.23&nbsp;yr) costs <strong>$28,107 for 1.21 extra years</strong> &mdash;
+        roughly <strong>$23,200 per year of warranty</strong> bought through the purchase price. A Genesis
+        Extended Protection Plan costs a small fraction of that. The <em>&ldquo;+EPP&rdquo;</em> column below prices
+        every car as if you bought the cheap one and bought the coverage separately.
+        <strong>That is the rational move, and it is not the expensive car.</strong>
+        <br><strong>Two things to verify before you sign anything.</strong> (1) Genesis Canada does not
+        publish whether the complimentary <strong>5-Year Care Plan &mdash; scheduled maintenance and the
+        at-home valet</strong> &mdash; transfers to a second owner. That valet is the reason this car fits your
+        life; get it confirmed in writing for the specific VIN. (2) Extended Protection is
+        <strong>not refunded if you never claim</strong> &mdash; it is fully refundable for 45 days, prorated on
+        cancellation thereafter. Run it to expiry claim-free and you get nothing back.
+      </p>
+    </div>
+    <div class="panel" style="padding:0;overflow:hidden">
+      <div class="scroll"><table style="min-width:980px"><thead><tr>
+        <th class="l">#</th><th class="l">Vehicle</th><th class="l">Seller</th><th>Price</th><th>km</th>
+        <th>Warranty</th><th>$/warr-yr</th><th>+EPP total</th>
+      </tr></thead><tbody id="gv-body"></tbody></table></div>
+      <div class="empty" id="gv-empty" hidden>Nothing matches these filters.</div>
+    </div>
+  </section>
+
+
 
 
 
@@ -519,6 +564,7 @@ a.go:hover{background:var(--accent);color:var(--bg);border-color:var(--accent)}
 <script src="phev.js"></script>
 <script src="palhyb.js"></script>
 <script src="teslay.js"></script>
+<script src="gv80.js"></script>
 <script>
 const $ = s => document.querySelector(s);
 const money = n => (n<0?"−$":"$") + Math.abs(n).toLocaleString("en-CA",{maximumFractionDigits:0});
@@ -1381,6 +1427,66 @@ document.getElementById("ty-filters")?.addEventListener("click",e=>{
 });
 document.querySelectorAll("#pane-tesla input").forEach(i=>i.addEventListener("input",renderTY));
 
+
+/* ---------- GV80 warranty-per-dollar pane ---------- */
+/* Genesis 5yr/100,000km, whichever first. At ~29,400 km/yr the km cap always binds, so
+ * remaining cover falls 1:1 with the previous owner's odometer. The "+EPP" column prices
+ * each car as purchase + an extended plan, which is how you actually buy warranty cheaply. */
+const gvState = { f:new Set(["seven"]) };
+function renderGV(){
+  const body=document.getElementById("gv-body"); if(!body||!window.GV80) return;
+  const KMYR=+document.getElementById("gv-km").value;
+  const GAS=+document.getElementById("gv-gas").value;
+  const EPP=+document.getElementById("gv-epp").value;
+  const hst=(+$("#hst").value)/100, NOW=2026.67;
+  const M=n=>"$"+Math.round(n).toLocaleString("en-CA");
+
+  const rows=window.GV80.map(r=>{
+    const [y,trim,p,km,col,seats,sellerType,seller,url,flag,note]=r;
+    const byDate=Math.max(0,(y+0.5+5)-NOW), byKm=Math.max(0,100000-km)/KMYR;
+    const w=Math.min(byDate,byKm);
+    const fees = sellerType==="franchise" ? 1540 : 1200;
+    const all=(p+fees)*(1+hst);
+    const perYr = w>0.05 ? p/w : null;              // null = no warranty to price
+    const withEpp = all + EPP;
+    return {y,trim,p,km,col,seats,sellerType,seller,url,flag,note,w,all,perYr,withEpp};
+  }).filter(r=>{
+    if(gvState.f.has("seven")     && r.seats<7) return false;
+    if(gvState.f.has("franchise") && r.sellerType!=="franchise") return false;
+    if(gvState.f.has("noflag")    && r.flag==="warn") return false;
+    return true;
+  }).sort((a,b)=>a.withEpp-b.withEpp);
+
+  document.getElementById("gv-empty").hidden = rows.length>0;
+  body.innerHTML = rows.map((r,i)=>`<tr class="row" tabindex="0">
+    <td class="l">${i+1}</td>
+    <td class="l"><div class="veh">${r.y} GV80 ${r.trim}
+      <a class="go" href="${r.url}" target="_blank" rel="noopener" title="Open listing"
+         onclick="event.stopPropagation()">&#8599;</a></div>
+      <div class="meta">
+        ${r.flag==="buy"?'<span class="tag q">BEST VALUE</span>':''}
+        ${r.flag==="warn"?'<span class="tag miss">VERIFY BEFORE YOU GO</span>':''}
+        <span class="tag ${r.seats<7?"miss":""}">${r.seats} seats</span>
+        <span class="tag ${r.w<1?"miss":r.w>3?"q":""}">${r.w.toFixed(2)} yr cover</span>
+        ${r.col}</div>
+      <div class="meta">${r.note}</div></td>
+    <td class="l">${r.seller}<div class="meta">
+      <span class="tag ${r.sellerType==="franchise"?"q":r.sellerType==="independent"?"miss":"est"}">${r.sellerType}</span></div></td>
+    <td>${M(r.p)}<div class="meta">${M(r.all)} out the door</div></td>
+    <td>${r.km.toLocaleString()}</td>
+    <td>${r.w.toFixed(2)} yr<div class="meta">km cap binds</div></td>
+    <td>${r.perYr?M(r.perYr):"&mdash;"}</td>
+    <td><strong>${M(r.withEpp)}</strong></td></tr>`).join("");
+}
+document.getElementById("gv-filters")?.addEventListener("click",e=>{
+  const b=e.target.closest(".chip"); if(!b) return;
+  const on=b.getAttribute("aria-pressed")==="true";
+  b.setAttribute("aria-pressed",String(!on));
+  on?gvState.f.delete(b.dataset.f):gvState.f.add(b.dataset.f);
+  renderGV();
+});
+document.querySelectorAll("#pane-gv80 input").forEach(i=>i.addEventListener("input",renderGV));
+
 document.querySelectorAll(".tab").forEach(b=>b.addEventListener("click",()=>{
   document.querySelectorAll(".tab").forEach(x=>x.setAttribute("aria-selected", String(x===b)));
   document.getElementById("pane-deals").hidden = b.dataset.tab!=="deals";
@@ -1391,6 +1497,7 @@ document.querySelectorAll(".tab").forEach(b=>b.addEventListener("click",()=>{
   document.getElementById("pane-phev").hidden  = b.dataset.tab!=="phev";
   document.getElementById("pane-palhyb").hidden= b.dataset.tab!=="palhyb";
   document.getElementById("pane-tesla").hidden = b.dataset.tab!=="tesla";
+  document.getElementById("pane-gv80").hidden  = b.dataset.tab!=="gv80";
   if(b.dataset.tab==="ev") renderEV();
   if(b.dataset.tab==="seven") renderS7();
   if(b.dataset.tab==="tx") renderTX();
@@ -1398,9 +1505,10 @@ document.querySelectorAll(".tab").forEach(b=>b.addEventListener("click",()=>{
   if(b.dataset.tab==="phev") renderPH();
   if(b.dataset.tab==="palhyb") renderPB();
   if(b.dataset.tab==="tesla") renderTY();
+  if(b.dataset.tab==="gv80") renderGV();
 }));
 document.querySelectorAll("#pane-ev input").forEach(i=>i.addEventListener("input",renderEV));
-renderEV(); renderS7(); renderTX(); renderCL(); renderPH(); renderPB(); renderTY();
+renderEV(); renderS7(); renderTX(); renderCL(); renderPH(); renderPB(); renderTY(); renderGV();
 
 </script>
 </body>
