@@ -102,6 +102,7 @@ a.go:hover{background:var(--accent);color:var(--bg);border-color:var(--accent)}
     <button class="tab" data-tab="palhyb" aria-selected="false">Palisade Hybrid</button>
     <button class="tab" data-tab="tesla" aria-selected="false">Used Model Y</button>
     <button class="tab" data-tab="gv80" aria-selected="false">GV80 warranty</button>
+    <button class="tab" data-tab="toyota" aria-selected="false">Toyota hybrids</button>
   </div>
 
   <section id="pane-deals">
@@ -554,6 +555,50 @@ a.go:hover{background:var(--accent);color:var(--bg);border-color:var(--accent)}
     </div>
   </section>
 
+  <section id="pane-toyota" hidden>
+    <div class="panel">
+      <div class="ctrls">
+        <div><label for="ty2-km">Your km/yr</label><input type="number" id="ty2-km" value="29400" step="1000" min="1000"></div>
+        <div><label for="ty2-gas">Gas $/L (regular)</label><input type="number" id="ty2-gas" value="1.50" step="0.05" min="0"></div>
+        <div><label for="ty2-hold">Hold, years</label><input type="number" id="ty2-hold" value="10" step="1" min="1" max="15"></div>
+      </div>
+      <div class="chips" id="ty2-filters">
+        <button class="chip" data-f="na" aria-pressed="true">2.5L NA hybrid only (skip MAX)</button>
+        <button class="chip" data-f="gh" aria-pressed="false">Grand Highlander only</button>
+        <button class="chip" data-f="lowkm" aria-pressed="false">Under 60,000 km</button>
+      </div>
+      <p class="note" style="margin-top:14px">
+        <strong>Both nameplates ARE sold as hybrids in Canada.</strong> The scan found
+        <strong>36 Highlander hybrids</strong> (of 94 scanned) and <strong>29 Grand Highlander hybrids</strong>
+        (of 75). Toyota Canada&rsquo;s own Build &amp; Price confirms it, listing 2026 GRAND HIGHLANDER and
+        GRAND HIGHLANDER HYBRID in one six-model lineup: <strong>Hybrid XLE $58,661.92 &middot;
+        Hybrid Limited $65,996.92 &middot; Platinum Hybrid MAX $70,256.92</strong>. If a dealer says
+        &ldquo;gas only&rdquo;, that is an answer about their lot, not about the model.
+        <br><strong>The powertrain split is the whole point for a 10-year hold.</strong>
+        The <strong>2.5L naturally-aspirated hybrid</strong> (XLE, Limited, LE) runs an eCVT &mdash; no clutch
+        packs, no torque converter, no starter motor, no alternator, regen sparing the brakes and an
+        engine that idles far less. That powertrain family ranked <strong>third among all SUVs</strong> for
+        reaching 300,000 miles.
+        <br><strong>Hybrid MAX is a 2.4 TURBO</strong>, and on the Grand Highlander &ldquo;Platinum&rdquo; ALWAYS means
+        Hybrid MAX. It is quicker and thirstier, and it reintroduces the exact turbo failure modes &mdash;
+        oil coking, carbon buildup, timing chain &mdash; that you would be buying a Toyota to avoid. The
+        filter above hides them by default. <strong>Two Platinum MAX listings are asking $84,990 against
+        Toyota&rsquo;s own $70,257 sticker &mdash; $14,733 over list.</strong>
+        <br><strong>Verify on the car:</strong> confirm the engine is the 2.5L naturally aspirated, not a
+        2.4 turbo. That one spec is the entire durability argument, and it is the thing a listing title
+        is most likely to get wrong.
+      </p>
+    </div>
+    <div class="panel" style="padding:0;overflow:hidden">
+      <div class="scroll"><table style="min-width:960px"><thead><tr>
+        <th class="l">#</th><th class="l">Vehicle</th><th>Price</th><th>km</th>
+        <th>Fuel/yr</th><th>km at exit</th><th>HOLD COST</th>
+      </tr></thead><tbody id="ty2-body"></tbody></table></div>
+      <div class="empty" id="ty2-empty" hidden>Nothing matches these filters.</div>
+    </div>
+  </section>
+
+
 
 
 
@@ -567,6 +612,7 @@ a.go:hover{background:var(--accent);color:var(--bg);border-color:var(--accent)}
 <script src="palhyb.js"></script>
 <script src="teslay.js"></script>
 <script src="gv80.js"></script>
+<script src="toyota.js"></script>
 <script>
 const $ = s => document.querySelector(s);
 const money = n => (n<0?"−$":"$") + Math.abs(n).toLocaleString("en-CA",{maximumFractionDigits:0});
@@ -1505,6 +1551,68 @@ document.getElementById("gv-filters")?.addEventListener("click",e=>{
 });
 document.querySelectorAll("#pane-gv80 input").forEach(i=>i.addEventListener("input",renderGV));
 
+
+/* ---------- Toyota hybrids pane ---------- */
+/* Built for a RUN-IT-TO-THE-GROUND hold, not a 5-year cycle. Over ~10 years / 294,000 km
+ * every one of these is worth roughly scrap, so depreciation collapses to "what you paid"
+ * and the variables that matter are purchase price, fuel, and out-of-warranty repairs. */
+const SCRAP = 6000;
+const ty2State = { f:new Set(["na"]) };
+function renderTY2(){
+  const body=document.getElementById("ty2-body"); if(!body||!window.TOYOTA) return;
+  const KMYR=+document.getElementById("ty2-km").value;
+  const GAS=+document.getElementById("ty2-gas").value;
+  const YRS=+document.getElementById("ty2-hold").value;
+  const hst=(+$("#hst").value)/100;
+  const KM=KMYR*YRS;
+  const M=n=>"$"+Math.round(n).toLocaleString("en-CA");
+
+  const rows=window.TOYOTA.map(r=>{
+    const [model,y,trim,p,km,col,isMAX,isNew,url,note]=r;
+    const lp = isMAX ? 8.6 : (model==="Grand Highlander" ? 6.8 : 6.7);   // NRCan-class combined
+    const all=(p+1540)*(1+hst);
+    const fuelYr=KMYR*lp/100*GAS;
+    // service+repairs: the NA hybrid is the cheap one; MAX carries turbo risk
+    const svcRep = (isMAX ? 900 : 650)*YRS + (isMAX ? 9000 : 6500);
+    const tyres = Math.max(0, Math.ceil(KM/65000)-1)*1600;
+    const exitKm = km + KM;
+    const total = all - SCRAP + fuelYr*YRS + svcRep + tyres;
+    return {model,y,trim,p,km,col,isMAX,isNew,url,note,lp,fuelYr,exitKm,all,total};
+  }).filter(r=>{
+    if(ty2State.f.has("na")    && r.isMAX)     return false;
+    if(ty2State.f.has("gh")    && r.model!=="Grand Highlander") return false;
+    if(ty2State.f.has("lowkm") && r.km>=60000) return false;
+    return true;
+  }).sort((a,b)=>a.total-b.total);
+
+  document.getElementById("ty2-empty").hidden = rows.length>0;
+  body.innerHTML = rows.map((r,i)=>`<tr class="row" tabindex="0">
+    <td class="l">${i+1}</td>
+    <td class="l"><div class="veh">${r.y} ${r.model} ${r.trim}
+      <a class="go" href="${r.url}" target="_blank" rel="noopener" title="Open listing"
+         onclick="event.stopPropagation()">&#8599;</a></div>
+      <div class="meta">
+        ${r.isMAX?'<span class="tag miss">HYBRID MAX &mdash; 2.4 TURBO</span>'
+                 :'<span class="tag q">2.5L NA hybrid</span>'}
+        ${r.isNew?'<span class="tag cond c-new">new</span>':''}
+        <span class="tag">${r.model==="Grand Highlander"?"bigger 3rd row":"smaller"}</span>
+        ${r.col} &middot; ${r.lp} L/100km</div>
+      ${r.note?`<div class="meta">${r.note}</div>`:""}</td>
+    <td>${M(r.p)}<div class="meta">${M(r.all)} out the door</div></td>
+    <td>${r.km.toLocaleString()}</td>
+    <td>${M(r.fuelYr)}</td>
+    <td>${r.exitKm.toLocaleString()}</td>
+    <td><strong>${M(r.total)}</strong></td></tr>`).join("");
+}
+document.getElementById("ty2-filters")?.addEventListener("click",e=>{
+  const b=e.target.closest(".chip"); if(!b) return;
+  const on=b.getAttribute("aria-pressed")==="true";
+  b.setAttribute("aria-pressed",String(!on));
+  on?ty2State.f.delete(b.dataset.f):ty2State.f.add(b.dataset.f);
+  renderTY2();
+});
+document.querySelectorAll("#pane-toyota input").forEach(i=>i.addEventListener("input",renderTY2));
+
 document.querySelectorAll(".tab").forEach(b=>b.addEventListener("click",()=>{
   document.querySelectorAll(".tab").forEach(x=>x.setAttribute("aria-selected", String(x===b)));
   document.getElementById("pane-deals").hidden = b.dataset.tab!=="deals";
@@ -1516,6 +1624,7 @@ document.querySelectorAll(".tab").forEach(b=>b.addEventListener("click",()=>{
   document.getElementById("pane-palhyb").hidden= b.dataset.tab!=="palhyb";
   document.getElementById("pane-tesla").hidden = b.dataset.tab!=="tesla";
   document.getElementById("pane-gv80").hidden  = b.dataset.tab!=="gv80";
+  document.getElementById("pane-toyota").hidden= b.dataset.tab!=="toyota";
   if(b.dataset.tab==="ev") renderEV();
   if(b.dataset.tab==="seven") renderS7();
   if(b.dataset.tab==="tx") renderTX();
@@ -1524,9 +1633,10 @@ document.querySelectorAll(".tab").forEach(b=>b.addEventListener("click",()=>{
   if(b.dataset.tab==="palhyb") renderPB();
   if(b.dataset.tab==="tesla") renderTY();
   if(b.dataset.tab==="gv80") renderGV();
+  if(b.dataset.tab==="toyota") renderTY2();
 }));
 document.querySelectorAll("#pane-ev input").forEach(i=>i.addEventListener("input",renderEV));
-renderEV(); renderS7(); renderTX(); renderCL(); renderPH(); renderPB(); renderTY(); renderGV();
+renderEV(); renderS7(); renderTX(); renderCL(); renderPH(); renderPB(); renderTY(); renderGV(); renderTY2();
 
 </script>
 </body>
