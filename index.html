@@ -1455,7 +1455,9 @@ function renderGV(){
     if(gvState.f.has("franchise") && r.sellerType!=="franchise") return false;
     if(gvState.f.has("noflag")    && r.flag==="warn") return false;
     return true;
-  }).sort((a,b)=>a.withEpp-b.withEpp);
+  /* Rank by COST PER YEAR OF COVERAGE, not by sticker. Sorting on total price put a
+   * 0.83-yr 2022 at #1 on a warranty tab - sort order must not impersonate judgement. */
+  }).sort((a,b)=>(a.perYr??Infinity)-(b.perYr??Infinity));
 
   document.getElementById("gv-empty").hidden = rows.length>0;
   body.innerHTML = rows.map((r,i)=>`<tr class="row" tabindex="0">
