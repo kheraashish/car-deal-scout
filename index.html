@@ -515,6 +515,7 @@ a.go:hover{background:var(--accent);color:var(--bg);border-color:var(--accent)}
         <div><label for="gv-km">Your km/yr</label><input type="number" id="gv-km" value="29400" step="1000" min="1000"></div>
         <div><label for="gv-gas">Premium gas $/L</label><input type="number" id="gv-gas" value="1.75" step="0.05" min="0"></div>
         <div><label for="gv-epp">Genesis Extended Protection $</label><input type="number" id="gv-epp" value="3000" step="250" min="0"></div>
+        <div><label for="gv-dep">Depreciation %/yr (observed)</label><input type="number" id="gv-dep" value="15" step="0.5" min="0"></div>
       </div>
       <div class="chips" id="gv-filters">
         <button class="chip" data-f="seven" aria-pressed="true">7 seats only</button>
@@ -535,7 +536,7 @@ a.go:hover{background:var(--accent);color:var(--bg);border-color:var(--accent)}
         Extended Protection Plan costs a small fraction of that. The <em>&ldquo;+EPP&rdquo;</em> column below prices
         every car as if you bought the cheap one and bought the coverage separately.
         <strong>That is the rational move, and it is not the expensive car.</strong>
-        <br><strong>Two things to verify before you sign anything.</strong> (1) Genesis Canada does not
+        <br><strong>The depreciation is worse than I had modelled, and you found it.</strong> Those 2021s at $31&ndash;35K are not a bargain signal &mdash; they are a forecast. A 2021 3.5T Prestige launched at <strong>$85,000</strong> and lists today at <strong>$32,999&ndash;$36,587</strong>: <strong>57&ndash;61% gone, 14.2&ndash;15.8% a year.</strong> The 2.5T Advanced launched at $64,500 and lost only 44&ndash;49% (~10.8%/yr) &mdash; <strong>the top trim you are shopping is the fastest-falling configuration.</strong> This model now defaults to the observed <strong>15%/yr</strong>, not the 11% used elsewhere on this site. <br><strong>And the mileage lines up against you.</strong> That $32,999 car has 125,675&nbsp;km. At your 29,400&nbsp;km/yr the $79,888 CPO car reaches 126,000&nbsp;km in <strong>3.2 years</strong>. Those $33K listings are not somebody else&rsquo;s car &mdash; they are yours, three years early. Budget to lose about <strong>$44,000</strong> on it over five years.<br><strong>Two things to verify before you sign anything.</strong> (1) Genesis Canada does not
         publish whether the complimentary <strong>5-Year Care Plan &mdash; scheduled maintenance and the
         at-home valet</strong> &mdash; transfers to a second owner. That valet is the reason this car fits your
         life; get it confirmed in writing for the specific VIN. (2) Extended Protection is
@@ -546,7 +547,7 @@ a.go:hover{background:var(--accent);color:var(--bg);border-color:var(--accent)}
     <div class="panel" style="padding:0;overflow:hidden">
       <div class="scroll"><table style="min-width:980px"><thead><tr>
         <th class="l">#</th><th class="l">Vehicle</th><th class="l">Seller</th><th>Price</th><th>km</th>
-        <th>Warranty</th><th>$/warr-yr</th><th>+EPP total</th>
+        <th>Warranty</th><th>$/warr-yr</th><th>5-yr residual</th><th>Depreciation</th><th>+EPP total</th>
       </tr></thead><tbody id="gv-body"></tbody></table></div>
       <div class="empty" id="gv-empty" hidden>Nothing matches these filters.</div>
     </div>
@@ -1438,6 +1439,7 @@ function renderGV(){
   const KMYR=+document.getElementById("gv-km").value;
   const GAS=+document.getElementById("gv-gas").value;
   const EPP=+document.getElementById("gv-epp").value;
+  const DEP=(+document.getElementById("gv-dep").value)/100;
   const hst=(+$("#hst").value)/100, NOW=2026.67;
   const M=n=>"$"+Math.round(n).toLocaleString("en-CA");
 
@@ -1449,7 +1451,9 @@ function renderGV(){
     const all=(p+fees)*(1+hst);
     const perYr = w>0.05 ? p/w : null;              // null = no warranty to price
     const withEpp = all + EPP;
-    return {y,trim,p,km,col,seats,sellerType,seller,url,flag,note,w,all,perYr,withEpp};
+    const resid = p*Math.pow(1-DEP,5);      // observed GV80 top-trim rate, not a guess
+    const lost  = p - resid;
+    return {y,trim,p,km,col,seats,sellerType,seller,url,flag,note,w,all,perYr,withEpp,resid,lost};
   }).filter(r=>{
     if(gvState.f.has("seven")     && r.seats<7) return false;
     if(gvState.f.has("franchise") && r.sellerType!=="franchise") return false;
@@ -1478,7 +1482,9 @@ function renderGV(){
     <td>${r.km.toLocaleString()}</td>
     <td>${r.w.toFixed(2)} yr<div class="meta">km cap binds</div></td>
     <td>${r.perYr?M(r.perYr):"&mdash;"}</td>
-    <td><strong>${M(r.withEpp)}</strong></td></tr>`).join("");
+    <td>${M(r.resid)}<div class="meta">${(r.km+KMYR*5).toLocaleString()} km</div></td>
+    <td><strong>&minus;${M(r.lost)}</strong></td>
+    <td>${M(r.withEpp)}</td></tr>`).join("");
 }
 document.getElementById("gv-filters")?.addEventListener("click",e=>{
   const b=e.target.closest(".chip"); if(!b) return;
